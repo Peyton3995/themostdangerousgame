@@ -1,5 +1,9 @@
 "use strict";
 
+window.onload = () => {
+    getLocation();
+}
+
 function getLocation() {
   if (navigator.geolocation) {
     console.log("estimating user position...")
