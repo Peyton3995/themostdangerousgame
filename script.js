@@ -1,13 +1,16 @@
 "use strict";
 
+const displayLocation = document.getElementById("local")
+
 window.onload = () => {
     getLocation();
 }
 
-function getLocation() {
-  if (navigator.geolocation) {
+async function getLocation() {
+  if (await navigator.geolocation) {
     console.log("estimating user position...")
-    navigator.geolocation.watchPosition(success, error);
+    displayLocation.innerHTML = 'Latitude: YY.yyyyyyy --- Longitude: XX.xxxxxxx'
+    await navigator.geolocation.getCurrentPosition(success, error);
   } else { 
     console.log("Geolocation is not supported by this browser.");
   }
@@ -15,6 +18,8 @@ function getLocation() {
     
 function success(position) {
     console.log(`Latitude: ${position.coords.latitude} Longitude: ${position.coords.longitude}`);
+    displayLocation.innerHTML = `Latitude: ${position.coords.latitude} --- Longitude: ${position.coords.longitude}`
+    setTimeout(getLocation, 30000);
 }
 
 function error(error) {
@@ -33,5 +38,3 @@ function error(error) {
       break;
   }
 }
-
-setInterval(getLocation, 30000);
