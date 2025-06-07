@@ -2,23 +2,45 @@
 
 const displayLocation = document.getElementById("local")
 
+let map, marker;
+
 window.onload = () => {
     getLocation();
 }
 
 async function getLocation() {
-  if (await navigator.geolocation) {
+  if (navigator.geolocation) {
     console.log("estimating user position...")
     displayLocation.innerHTML = 'Latitude: YY.yyyyyyy --- Longitude: XX.xxxxxxx'
-    await navigator.geolocation.getCurrentPosition(success, error);
+    navigator.geolocation.getCurrentPosition(success, error);
   } else { 
     console.log("Geolocation is not supported by this browser.");
   }
 }
     
-function success(position) {
-    console.log(`Latitude: ${position.coords.latitude} Longitude: ${position.coords.longitude}`);
-    displayLocation.innerHTML = `Latitude: ${position.coords.latitude} --- Longitude: ${position.coords.longitude}`
+async function success(position) {
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+    displayLocation.innerText = `Latitude: ${lat} --- Longitude: ${lng}`;
+    console.log(`Latitude: ${lat}, Longitude: ${lng}`);
+
+    const userLocation = { lat, lng };
+
+    if (!map) {
+        map = new google.maps.Map(document.getElementById("map"), {
+            center: userLocation,
+            zoom: 15,
+        });
+        marker = new google.maps.Marker({
+            position: userLocation,
+            map: map,
+            title: "You are here!",
+        });
+    } else {
+        marker.setPosition(userLocation);
+        map.setCenter(userLocation);
+    }
+
     setTimeout(getLocation, 30000);
 }
 
