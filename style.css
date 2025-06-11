@@ -72,3 +72,8 @@ h2 {
 h3 {
     color: grey
 }
+
+footer {
+  text-align: center;
+  padding-top: 30px;
+}
