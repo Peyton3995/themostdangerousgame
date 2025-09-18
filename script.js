@@ -26,21 +26,6 @@ async function success(position) {
 
     const userLocation = { lat, lng };
 
-    if (!map) {
-        map = new google.maps.Map(document.getElementById("map"), {
-            center: userLocation,
-            zoom: 15,
-        });
-        marker = new google.maps.Marker({
-            position: userLocation,
-            map: map,
-            title: "You are here!",
-        });
-    } else {
-        marker.setPosition(userLocation);
-        map.setCenter(userLocation);
-    }
-
     setTimeout(getLocation, 30000);
 }
 
