@@ -1,0 +1,83 @@
+/*
+Peyton Luhring
+Jan '24
+Web Apps personal page. CSS file
+*/
+
+/* Creates standard for all paragraphs */
+.paragraph-block {
+    max-width: 50%;
+    margin: auto auto 25px;
+}
+/* Creates standard for all images */
+img {
+    max-width: 40%;
+    max-height: 750px;
+}
+
+/* Ensures the table does not encompass both ends of the page*/
+.table_div {
+    max-width: 50%;
+    margin: auto auto 50px
+}
+
+/* Borders for actual table */
+table {
+    margin-left: auto;
+    margin-right: auto;
+    border: solid 1px black;
+    border-collapse: collapse;
+}
+
+/* Titles align left*/
+th {
+    text-align: center;
+    padding-bottom: 5px;
+}
+
+td {
+    padding-bottom: 5px;
+    padding-top: 5px;
+}
+
+/* Ensures title sections are always shorter than description sections */
+.cell-name {
+    width: 30%;
+}
+
+.cell-description {
+    width: 60%;
+}
+
+tbody tr:nth-child(odd) {
+    background-color: hsl(0, 8%, 97%)
+}
+
+tbody tr:hover {
+    background-color: rgb(255, 255, 232) !important;
+}
+
+body {
+    background-color: black
+}
+
+h1 {
+    color: red
+}
+
+h2 {
+    color: white
+}
+
+h3 {
+    color: grey
+}
+
+span {
+    color:darkgrey
+}
+
+footer {
+  text-align: center;
+  padding-top: 30px;
+}
