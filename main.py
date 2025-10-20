@@ -60,6 +60,7 @@ def add_position():
 def get_positions():
     conn = get_db_connection()
     rows = conn.execute("SELECT * FROM positions").fetchall()
+    conn.commit()
     conn.close()
 
     positions = [dict(row) for row in rows]
