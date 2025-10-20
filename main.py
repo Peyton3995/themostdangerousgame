@@ -52,6 +52,8 @@ def add_position():
         conn.close()
         return jsonify({"message": "Position added successfully"}), 201
     except sqlite3.IntegrityError:
+        conn.commit()
+        conn.close()
         return jsonify({"error": "User ID already exists. Use PUT to update."}), 409
 
 
