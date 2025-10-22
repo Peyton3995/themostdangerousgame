@@ -69,8 +69,9 @@ def get_positions(game_id):
     rows = conn.execute("SELECT * FROM positions WHERE game_id = ?", (game_id,)).fetchall()
     conn.commit()
     conn.close()
-
     positions = [dict(row) for row in rows]
+    
+
     return jsonify(positions)
 
 
@@ -86,7 +87,7 @@ def update_position(user_id):
 
     conn = get_db_connection()
     result = conn.execute(
-        "UPDATE positions SET latitude = ?, longitude = ? WHERE user_id = ?",
+        "UPDATE positions SET latitude = ?, longitude = ?, timestamp = CURRENT_TIMESTAMP WHERE user_id = ?",
         (latitude, longitude, user_id),
     )
     conn.commit()
@@ -96,6 +97,19 @@ def update_position(user_id):
         return jsonify({"error": "User not found"}), 404
 
     return jsonify({"message": "Position updated successfully"})
+
+# --- DELETE: Delete all positions for a given game_id ---
+@app.route("/positions/<game_id>", methods=["DELETE"])
+def delete_positions_by_game(game_id):
+    conn = get_db_connection()
+    result = conn.execute("DELETE FROM positions WHERE game_id = ?", (game_id,))
+    conn.commit()
+    conn.close()
+
+    if result.rowcount == 0:
+        return jsonify({"message": f"No positions found for game_id '{game_id}'"}), 404
+
+    return jsonify({"message": f"Deleted position(s) for game_id '{game_id}'"}), 200
 
 
 if __name__ == "__main__":
