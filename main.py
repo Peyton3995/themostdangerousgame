@@ -19,8 +19,11 @@ def init_db():
         CREATE TABLE IF NOT EXISTS positions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id TEXT UNIQUE NOT NULL,
+            team_id TEXT NOT NULL,
+            game_id TEXT NOT NULL,
             latitude REAL NOT NULL,
-            longitude REAL NOT NULL
+            longitude REAL NOT NULL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
     conn.commit()
@@ -36,17 +39,19 @@ def add_position():
     data = request.get_json()
 
     user_id = data.get("user_id")
+    team_id = data.get("team_id")
+    game_id = data.get("game_id")
     latitude = data.get("latitude")
     longitude = data.get("longitude")
 
-    if not user_id or latitude is None or longitude is None:
+    if user_id is None or latitude is None or longitude is None or team_id is None or game_id is None:
         return jsonify({"error": "user_id, latitude, and longitude are required"}), 400
 
     try:
         conn = get_db_connection()
         conn.execute(
-            "INSERT INTO positions (user_id, latitude, longitude) VALUES (?, ?, ?)",
-            (user_id, latitude, longitude),
+            "INSERT INTO positions (user_id, team_id, game_id, latitude, longitude) VALUES (?, ?, ?, ?, ?)",
+            (user_id, team_id, game_id, latitude, longitude),
         )
         conn.commit()
         conn.close()
@@ -57,11 +62,11 @@ def add_position():
         return jsonify({"error": "User ID already exists. Use PUT to update."}), 409
 
 
-# --- GET: Retrieve all positions ---
-@app.route("/positions", methods=["GET"])
-def get_positions():
+# --- GET: Retrieve all positions for given game---
+@app.route("/positions/<game_id>", methods=["GET"])
+def get_positions(game_id):
     conn = get_db_connection()
-    rows = conn.execute("SELECT * FROM positions").fetchall()
+    rows = conn.execute("SELECT * FROM positions WHERE game_id = ?", (game_id,)).fetchall()
     conn.commit()
     conn.close()
 
