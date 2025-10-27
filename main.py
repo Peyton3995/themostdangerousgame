@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, render_template
 import sqlite3
 
 app = Flask(__name__)
-DATABASE = "positions.db"
+DATABASE = "game.db"
 
 
 # --- Helper function to interact with the database ---
@@ -38,6 +38,16 @@ def init_db():
             defenders INTEGER NOT NULL DEFAULT 0,
             attackers INTEGER NOT NULL DEFAULT 0,
             team_id TEXT DEFAULT 'NOBODY',
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS games (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            game_id TEXT NOT NULL,
+            latitude REAL NOT NULL,
+            longitude REAL NOT NULL,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -206,6 +216,59 @@ def delete_points_by_game(game_id):
         return jsonify({"message": f"No positions found for game_id '{game_id}'"}), 404
 
     return jsonify({"message": f"Deleted position(s) for game_id '{game_id}'"}), 200
+
+# --- End Points for Creating a Game
+
+# --- POST: Add a new position ---
+@app.route("/games", methods=["POST"])
+def add_game():
+    data = request.get_json()
+
+    game_id = data.get("game_id")
+    latitude = data.get("latitude")
+    longitude = data.get("longitude")
+
+    if latitude is None or longitude is None or game_id is None:
+        return jsonify({"error": "game_id, latitude, and longitude are required"}), 400
+
+    try:
+        conn = get_db_connection()
+        conn.execute(
+            "INSERT INTO games (game_id, latitude, longitude) VALUES (?, ?, ?)",
+            (game_id, latitude, longitude),
+        )
+        conn.commit()
+        conn.close()
+        return jsonify({"message": "Game added successfully"}), 201
+    except sqlite3.IntegrityError:
+        conn.commit()
+        conn.close()
+        return jsonify({"error": "Game already exists. Use a unique name"}), 409
+
+
+# --- GET: Retrieve all positions for given game---
+@app.route("/games", methods=["GET"])
+def get_games():
+    conn = get_db_connection()
+    rows = conn.execute("SELECT * FROM games").fetchall()
+    conn.commit()
+    conn.close()
+    positions = [dict(row) for row in rows]
+    
+    return jsonify(positions)
+
+# --- DELETE: Delete all positions for a given game_id ---
+@app.route("/games/<game_id>", methods=["DELETE"])
+def delete_game(game_id):
+    conn = get_db_connection()
+    result = conn.execute("DELETE FROM games WHERE game_id = ?", (game_id,))
+    conn.commit()
+    conn.close()
+
+    if result.rowcount == 0:
+        return jsonify({"message": f"Game id not found. Doesn't exist or already deleted '{game_id}'"}), 404
+
+    return jsonify({"message": f"Deleted game id'{game_id}'"}), 200
 
 
 if __name__ == "__main__":
