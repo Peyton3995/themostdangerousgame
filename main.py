@@ -15,7 +15,7 @@ def get_db_connection():
 # --- Initialize the database ---
 def init_db():
     conn = get_db_connection()
-    conn.executescript("""
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS positions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id TEXT UNIQUE NOT NULL,
@@ -24,8 +24,10 @@ def init_db():
             latitude REAL NOT NULL,
             longitude REAL NOT NULL,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-        );
-                 
+        )
+    """)
+    conn.commit()
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS points (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             point_id TEXT NOT NULL,
