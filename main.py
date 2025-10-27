@@ -15,7 +15,7 @@ def get_db_connection():
 # --- Initialize the database ---
 def init_db():
     conn = get_db_connection()
-    conn.execute("""
+    conn.executescript("""
         CREATE TABLE IF NOT EXISTS positions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id TEXT UNIQUE NOT NULL,
@@ -23,6 +23,19 @@ def init_db():
             game_id TEXT NOT NULL,
             latitude REAL NOT NULL,
             longitude REAL NOT NULL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+                 
+        CREATE TABLE IF NOT EXISTS points (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            point_id TEXT NOT NULL,
+            game_id TEXT NOT NULL,
+            latitude REAL NOT NULL,
+            longitude REAL NOT NULL,
+            captured INTEGER NOT NULL DEFAULT 0,
+            defenders INTEGER NOT NULL DEFAULT 0,
+            attackers INTEGER NOT NULL DEFAULT 0,
+            team_id TEXT DEFAULT 'NOBODY',
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -32,6 +45,8 @@ def init_db():
 @app.route("/")
 def index():
     return render_template("index.html")
+
+#--- END POINT FOR CREATING USERS AND STORING AND UPDATING THEIR POSITIONS ---#
 
 # --- POST: Add a new position ---
 @app.route("/positions", methods=["POST"])
@@ -101,6 +116,85 @@ def update_position(user_id):
 # --- DELETE: Delete all positions for a given game_id ---
 @app.route("/positions/<game_id>", methods=["DELETE"])
 def delete_positions_by_game(game_id):
+    conn = get_db_connection()
+    result = conn.execute("DELETE FROM positions WHERE game_id = ?", (game_id,))
+    conn.commit()
+    conn.close()
+
+    if result.rowcount == 0:
+        return jsonify({"message": f"No positions found for game_id '{game_id}'"}), 404
+
+    return jsonify({"message": f"Deleted position(s) for game_id '{game_id}'"}), 200
+
+# --- ENDPOINTS FOR CREATING CONTROL POINTS --- #
+
+@app.route("/points", methods=["POST"])
+def add_point():
+    data = request.get_json()
+
+    point_id = data.get("point_id")
+    game_id = data.get("game_id")
+    latitude = data.get("latitude")
+    longitude = data.get("longitude")
+
+    if point_id is None or latitude is None or longitude is None or game_id is None:
+        return jsonify({"error": "point_id, game_id, latitude, and longitude are required"}), 400
+
+    try:
+        conn = get_db_connection()
+        conn.execute(
+            "INSERT INTO points (point_id, game_id, latitude, longitude) VALUES (?, ?, ?, ?)",
+            (point_id, game_id, latitude, longitude),
+        )
+        conn.commit()
+        conn.close()
+        return jsonify({"message": "Point added successfully"}), 201
+    except sqlite3.IntegrityError:
+        conn.commit()
+        conn.close()
+        return jsonify({"error": "Point ID already exists. Use PUT to update."}), 409
+    
+# --- GET: Retrieve all positions for given game---
+@app.route("/points/<game_id>", methods=["GET"])
+def get_points(game_id):
+    conn = get_db_connection()
+    rows = conn.execute("SELECT * FROM points WHERE game_id = ?", (game_id,)).fetchall()
+    conn.commit()
+    conn.close()
+    positions = [dict(row) for row in rows]
+    
+
+    return jsonify(positions)
+
+@app.route("/points/<game_id>/<point_id>", methods=["PUT"])
+def update_points(game_id, point_id):
+    data = request.get_json()
+    captured = data.get("captured")
+    defenders = data.get("defenders")
+    attackers = data.get("attackers")
+    team_id = data.get("team_id")
+    game_id = data.get("game_id")
+    point_id = data.get("point_id")
+
+    if game_id is None or point_id is None:
+        return jsonify({"error": "Need an existing game and point id"}), 400
+
+    conn = get_db_connection()
+    result = conn.execute(
+        "UPDATE points SET captured = ?, defenders = ?, attackers = ?, team_id = ?, timestamp = CURRENT_TIMESTAMP WHERE game_id = ? AND point_id = ?",
+        (captured, defenders, attackers, team_id, game_id, point_id),
+    )
+    conn.commit()
+    conn.close()
+
+    if result.rowcount == 0:
+        return jsonify({"error": "User not found"}), 404
+
+    return jsonify({"message": "Point updated successfully"})
+
+# --- DELETE: Delete a given point ---
+@app.route("/points/<game_id>", methods=["DELETE"])
+def delete_points_by_game(game_id):
     conn = get_db_connection()
     result = conn.execute("DELETE FROM positions WHERE game_id = ?", (game_id,))
     conn.commit()
