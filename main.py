@@ -166,7 +166,7 @@ def add_point():
         conn.close()
         return jsonify({"error": "Point ID already exists. Use PUT to update."}), 409
     
-# --- GET: Retrieve all positions for given game---
+# --- GET: Retrieve all points for given game---
 @app.route("/points/<game_id>", methods=["GET"])
 def get_points(game_id):
     conn = get_db_connection()
