@@ -1,0 +1,69 @@
+<!-- tell browser what to expect-->
+<!DOCTYPE html>
+
+<link rel="icon" href="data:,">
+
+<!-- specify english as the language -->
+<html lang="EN">
+
+<head>
+    <title>The Most Dangerous Game</title>
+    <!-- provide character set-->
+    <meta charset="utf-8">
+    <!-- ensure page displays across all platforms-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <!-- centering div-->
+    <div style="margin-left: auto; margin-right: auto; text-align: center">
+        <h2 id="top">Welcome to...</h2>
+        <h1><b>THE MOST DANGEROUS GAME</b></h1>
+    </div>
+
+    <div style="margin-left: auto; margin-right: auto; text-align: center">
+        <form>
+            <h3>Create a game...</h3>
+            <label for="game_id">Game ID:</label>
+            <input type="text" id="game_id" name="game_id" required>
+
+            <label for="latitude">Latitude:</label>
+            <input type="text" id="latitude" name="latitude" required>
+
+            <label for="longitude">Longitude:</label>
+            <input type="text" id="longitude" name="longitude" required>
+            <button type="button" onclick="submitGame()">Submit</button>
+        </form>
+
+        <form>
+            <h3>Establish points...</h3>
+
+            <label for="game_id">Game ID:</label>
+            <input type="text" id="game_id" name="game_id" required>
+
+            <label for="game_id">Point ID:</label>
+            <input type="text" id="point_id" name="point_id" required>
+
+            <label for="latitude">Latitude:</label>
+            <input type="text" id="latitude" name="latitude" required>
+
+            <label for="longitude">Longitude:</label>
+            <input type="text" id="longitude" name="longitude" required>
+            <button type="button" onclick="submitPoint()">Submit</button>
+        </form>
+
+        <p id="response"></p>
+    </div>
+
+    <footer>
+        <div>
+            <h2><a href="/">Home</a></h2>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='apiCalls.js') }}"></script>
+</body>
+
+</html>

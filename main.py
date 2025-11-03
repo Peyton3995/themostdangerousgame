@@ -1,7 +1,9 @@
 from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS
 import sqlite3
 
 app = Flask(__name__)
+CORS(app)
 DATABASE = "game.db"
 
 
@@ -30,7 +32,7 @@ def init_db():
     conn.execute("""
         CREATE TABLE IF NOT EXISTS points (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            point_id TEXT NOT NULL,
+            point_id TEXT UNIQUE NOT NULL,
             game_id TEXT NOT NULL,
             latitude REAL NOT NULL,
             longitude REAL NOT NULL,
@@ -45,7 +47,7 @@ def init_db():
     conn.execute("""
         CREATE TABLE IF NOT EXISTS games (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            game_id TEXT NOT NULL,
+            game_id TEXT UNIQUE NOT NULL,
             latitude REAL NOT NULL,
             longitude REAL NOT NULL,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -57,6 +59,14 @@ def init_db():
 @app.route("/")
 def index():
     return render_template("index.html")
+
+@app.route('/add_game')
+def create_game():
+    return render_template('add_game.html')
+
+@app.route('/display_game/<game_id>')
+def join_game(game_id):
+    return render_template('display.html')
 
 #--- END POINT FOR CREATING USERS AND STORING AND UPDATING THEIR POSITIONS ---#
 

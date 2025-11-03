@@ -1,0 +1,187 @@
+<!-- tell browser what to expect-->
+<!DOCTYPE html>
+
+<link rel="icon" href="data:,">
+
+<!-- specify english as the language -->
+<html lang="EN">
+
+<head>
+    <title>The Most Dangerous Game</title>
+    <!-- provide character set-->
+    <meta charset="utf-8">
+    <!-- ensure page displays across all platforms-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <!-- centering div-->
+    <div style="margin-left: auto; margin-right: auto; text-align: center">
+        <h2 id="top">Welcome to...</h2>
+        <h1><b>THE MOST DANGEROUS GAME</b></h1>
+    </div>
+
+    <div style="margin-left: auto; margin-right: auto; text-align: center">
+
+        <h2 style="color: red;" id="game-title">Loading...</h2>
+
+        <div id="map"></div>
+
+        <h3>Player Information</h3>
+        <table id="players-table">
+            <thead>
+                <tr>
+                    <th>-- -- Player --</th>
+                    <th>-- Latitude --</th>
+                    <th>-- Longitude --</th>
+                    <th>-- Timestamp -- --</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="4">Loading player data...</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>Point Locations</h3>
+        <table id="points-table">
+            <thead>
+                <tr>
+                    <th>-- -- Point -- </th>
+                    <th>-- Latitude --</th>
+                    <th>-- Longitude --</th>
+                    <th>-- Defending Team--</th>
+                    <th>-- Defenders-- </th>
+                    <th>-- Timestamp -- --</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="5">Loading point data...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+
+    <script>
+
+        let playerInfo;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const pathParts = window.location.pathname.split('/');
+            const gameId = pathParts[pathParts.length - 1];
+            document.getElementById('game-title').textContent = 'Game: ' + gameId;
+
+            const playersBody = document.querySelector('#players-table tbody');
+            const pointsBody = document.querySelector('#points-table tbody');
+            // Fetch player positions
+            fetch(`https://themostdangerousgame.net/positions/${gameId}`)
+                .then(response => response.json())
+                .then(data => {
+                    playersBody.innerHTML = '';
+                    if (data.length === 0) {
+                        playersBody.innerHTML = '<tr><td colspan="4">No player data available.</td></tr>';
+                        return;
+                    }
+                    data.forEach(p => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${p.user_id}</td>
+                            <td>${p.latitude}</td>
+                            <td>${p.longitude}</td>
+                            <td>${p.timestamp}</td>
+                        `;
+                        playersBody.appendChild(row);
+                    });
+
+                    playerInfo = data;
+                    initMap()
+                })
+                .catch(() => {
+                    playersBody.innerHTML = '<tr><td colspan="4">Failed to load player data.</td></tr>';
+                });
+
+            // Fetch point locations
+            fetch(`https://themostdangerousgame.net/points/${gameId}`)
+                .then(response => response.json())
+                .then(data => {
+                    pointsBody.innerHTML = '';
+                    if (data.length === 0) {
+                        pointsBody.innerHTML = '<tr><td colspan="5">No points available.</td></tr>';
+                        return;
+                    }
+                    data.forEach(point => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${point.point_id}</td>
+                            <td>${point.latitude}</td>
+                            <td>${point.longitude}</td>
+                            <td>${point.team_id}</td>
+                            <td>${point.defenders}</td>
+                            <td>${point.timestamp}</td>
+                        `;
+                        pointsBody.appendChild(row);
+
+                        const marker = new google.maps.Marker({
+                            position: { lat: parseFloat(point.latitude), lng: parseFloat(point.longitude) },
+                            map: map,
+                            title: `Point ${point.point}`,
+                            icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+                        });
+                    });
+                })
+                .catch(() => {
+                    pointsBody.innerHTML = '<tr><td colspan="5">Failed to load point data.</td></tr>';
+                });
+
+            let map;
+
+            // Initialize Google Map
+            function initMap() {
+                // Default center (if no data)
+                const defaultCenter = { lat: 39.5, lng: -98.35 }; // roughly center of USA
+
+                map = new google.maps.Map(document.getElementById("map"), {
+                    zoom: 4,
+                    center: defaultCenter
+                });
+
+                const bounds = new google.maps.LatLngBounds();
+
+                // Add a marker for each user
+                playerInfo.forEach(user => {
+                    const position = { lat: user.latitude, lng: user.longitude };
+                    const marker = new google.maps.Marker({
+                        position,
+                        map,
+                        label: user.user_id,
+                        title: user.user_id
+                    });
+                    bounds.extend(position);
+                });
+
+                // Adjust map to fit all markers
+                if (playerInfo.length > 0) {
+                    map.fitBounds(bounds);
+                }
+            }
+
+        });
+    </script>
+
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSh4PkmjDpT6-f4PrkKQQoR8NslMp_8QY&loading=aysnc">
+        </script>
+
+    <footer>
+        <div>
+            <h2><a href="/">Home</a></h2>
+        </div>
+    </footer>
+</body>
+
+</html>
