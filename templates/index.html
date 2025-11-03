@@ -43,7 +43,7 @@
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 // Fetch the game data from your local API
-                fetch('https://themost/games')
+                fetch('https://themostdangerousgame.net/games')
                     .then(response => response.json())
                     .then(data => {
                         const tbody = document.querySelector('tbody');
@@ -77,7 +77,7 @@
 
                             const joinCell = document.createElement('td');
                             const link = document.createElement('a');
-                            link.href = `http://localhost:5000/display_game/${game.game_id}`;
+                            link.href = `https://themostdangerousgame.net/display_game/${game.game_id}`;
                             link.textContent = 'View';
                             joinCell.appendChild(link);
 
