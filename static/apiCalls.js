@@ -32,9 +32,9 @@ async function submitGame() {
 
         const result = await response.json();
         document.getElementById('response').innerText = JSON.stringify(result);
-
+        
         if(result.ok){
-            windows.reload()
+            window.location.reload()
         }
     }
 
