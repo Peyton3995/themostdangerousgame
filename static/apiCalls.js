@@ -32,10 +32,6 @@ async function submitGame() {
 
         const result = await response.json();
         document.getElementById('response').innerText = JSON.stringify(result);
-        
-        if(result.ok){
-            window.location.reload()
-        }
     }
 
 async function submitPoint() {
@@ -82,9 +78,7 @@ async function displaySelectableGames() {
     })
     .then(data => {
         const dropdown = document.getElementById('games');
-        dropdown.innerHTML = ''; // Clear the "Loading..." option
-
-        // Assuming your API returns a list of objects with a 'game_id' field
+        dropdown.innerHTML = '';
         data.forEach(game => {
             const option = document.createElement('option');
             option.value = game.game_id;
