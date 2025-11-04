@@ -74,27 +74,27 @@ async function submitPoint() {
 
 async function displaySelectableGames() {
     fetch('https://themostdangerousgame.net/games')
-      .then(response => {
+    .then(response => {
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+            throw new Error('Network response was not ok');
         }
         return response.json();
-      })
-      .then(data => {
+    })
+    .then(data => {
         const dropdown = document.getElementById('games');
         dropdown.innerHTML = ''; // Clear the "Loading..." option
 
         // Assuming your API returns a list of objects with a 'game_id' field
         data.forEach(game => {
-          const option = document.createElement('option');
-          option.value = game.game_id;
-          option.textContent = game.game_id;
-          dropdown.appendChild(option);
+            const option = document.createElement('option');
+            option.value = game.game_id;
+            option.textContent = game.game_id;
+            dropdown.appendChild(option);
         });
-      })
-      .catch(error => {
+    })
+    .catch(error => {
         console.error('Error fetching games:', error);
         const dropdown = document.getElementById('games');
         dropdown.innerHTML = '<option>Error loading games</option>';
-      });
+    });
 }
