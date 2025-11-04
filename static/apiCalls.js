@@ -32,6 +32,10 @@ async function submitGame() {
 
         const result = await response.json();
         document.getElementById('response').innerText = JSON.stringify(result);
+
+        if(result.ok){
+            windows.reload()
+        }
     }
 
 async function submitPoint() {
@@ -66,10 +70,6 @@ async function submitPoint() {
 
     const result = await response.json();
     document.getElementById('response').innerText = JSON.stringify(result);
-
-    if(response.ok){
-        windows.reload()
-    }
 }
 
 async function displaySelectableGames() {
