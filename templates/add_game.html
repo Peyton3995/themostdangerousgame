@@ -38,10 +38,12 @@
         </form>
 
         <form>
-            <h3>Establish points...</h3>
+            <h3>Establish points (for an existing game)...</h3>
 
             <label for="game_id">Game ID:</label>
-            <input type="text" id="game_id" name="game_id" required>
+            <select id="games">
+                <option value="">Loading games...</option>
+            </select>
 
             <label for="game_id">Point ID:</label>
             <input type="text" id="point_id" name="point_id" required>

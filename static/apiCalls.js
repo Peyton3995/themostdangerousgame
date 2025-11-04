@@ -1,3 +1,7 @@
+window.onload = () => {
+    displaySelectableGames()
+}
+
 async function submitGame() {
             const game_id = document.getElementById('game_id').value.trim();
             const latitude = document.getElementById('latitude').value.trim();
@@ -28,6 +32,8 @@ async function submitGame() {
 
         const result = await response.json();
         document.getElementById('response').innerText = JSON.stringify(result);
+
+        window.location.reload();
     }
 
 async function submitPoint() {
@@ -62,4 +68,37 @@ async function submitPoint() {
 
     const result = await response.json();
     document.getElementById('response').innerText = JSON.stringify(result);
+}
+
+async function displaySelectableGames() {
+    fetch('https://themostdangerousgame.net/games')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        const dropdown = document.getElementById('games');
+        dropdown.innerHTML = ''; // Clear the "Loading..." option
+
+        // Assuming your API returns a list of objects with a 'game_id' field
+        data.forEach(game => {
+          const option = document.createElement('option');
+          option.value = game.game_id;
+          option.textContent = game.game_id;
+          dropdown.appendChild(option);
+        });
+
+        // Add a default option at the top
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Select a game';
+        dropdown.prepend(defaultOption);
+      })
+      .catch(error => {
+        console.error('Error fetching games:', error);
+        const dropdown = document.getElementById('games');
+        dropdown.innerHTML = '<option>Error loading games</option>';
+      });
 }
