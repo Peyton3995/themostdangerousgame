@@ -4,8 +4,8 @@ window.onload = () => {
 
 async function submitGame() {
             const game_id = document.getElementById('game_id').value.trim();
-            const latitude = document.getElementById('latitude').value.trim();
-            const longitude = document.getElementById('longitude').value.trim();
+            const latitude = document.getElementById('game_latitude').value.trim();
+            const longitude = document.getElementById('game_longitude').value.trim();
 
 
             if (!game_id || !latitude || !longitude) {
@@ -38,9 +38,9 @@ async function submitGame() {
 
 async function submitPoint() {
     const point_id = document.getElementById('point_id').value.trim()
-    const game_id = document.getElementById('game_id').value.trim();
-    const latitude = document.getElementById('latitude').value.trim();
-    const longitude = document.getElementById('longitude').value.trim();
+    const game_id = document.getElementById('games').value;
+    const latitude = document.getElementById('point_latitude').value.trim();
+    const longitude = document.getElementById('point_longitude').value.trim();
 
 
     if (!game_id || !point_id || !latitude || !longitude) {
