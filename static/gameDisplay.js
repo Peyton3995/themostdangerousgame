@@ -1,6 +1,6 @@
 // on page load, make a get request
 window.onload = () => {
-    loadGamesPositions();
+    loadGamePositions();
 }
 
 async function loadGamePositions() {
