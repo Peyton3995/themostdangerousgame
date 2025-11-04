@@ -1,5 +1,5 @@
 
-// on page load, make the a get request
+// on page load, make a get request
 window.onload = () => {
     getGames();
 }
