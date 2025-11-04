@@ -32,8 +32,6 @@ async function submitGame() {
 
         const result = await response.json();
         document.getElementById('response').innerText = JSON.stringify(result);
-
-        window.location.reload();
     }
 
 async function submitPoint() {
@@ -68,6 +66,10 @@ async function submitPoint() {
 
     const result = await response.json();
     document.getElementById('response').innerText = JSON.stringify(result);
+
+    if(response.ok){
+        windows.reload()
+    }
 }
 
 async function displaySelectableGames() {
@@ -89,12 +91,6 @@ async function displaySelectableGames() {
           option.textContent = game.game_id;
           dropdown.appendChild(option);
         });
-
-        // Add a default option at the top
-        const defaultOption = document.createElement('option');
-        defaultOption.value = '';
-        defaultOption.textContent = 'Select a game';
-        dropdown.prepend(defaultOption);
       })
       .catch(error => {
         console.error('Error fetching games:', error);
