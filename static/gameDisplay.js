@@ -3,19 +3,17 @@
 let game_id;
 
 window.onload = () => {
-    loadGamePositions();
-
     const pathParts = window.location.pathname.split('/');
     game_id = pathParts[pathParts.length - 1];
 
     const hyperLink = document.getElementById("join");
 
-    hyperLink.href += game_id;    
+    hyperLink.href += game_id;
+    
+    loadGamePositions();
 }
 
 async function loadGamePositions() {
-    const pathParts = window.location.pathname.split('/');
-    const gameId = pathParts[pathParts.length - 1];
     document.getElementById('game-title').textContent = 'Game: ' + game_id;
 
     const playersBody = document.querySelector('#players-table tbody');
