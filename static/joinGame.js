@@ -2,13 +2,15 @@ let latitude
 let longitude
 
 const pathParts = window.location.pathname.split('/');
-const gameId = pathParts[pathParts.length - 1];
+const game_id = pathParts[pathParts.length - 1];
 
 const displayLocation = document.getElementById("local")
 
 window.onload = () => {
     getLocation();
     displaySelectableTeams();
+
+    document.getElementById('game-title').textContent = 'Game: ' + game_id;
 }
 
 async function getLocation() {
@@ -26,8 +28,6 @@ async function success(position) {
     longitude = position.coords.longitude;
     displayLocation.innerText = `Latitude: ${latitude} --- Longitude: ${longitude}`;
     console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
-
-    setTimeout(getLocation, 30000);
 }
 
 function error(error) {
@@ -48,7 +48,7 @@ function error(error) {
 }
 
 async function joinGame() {
-    const game_id = gameId;
+    const game_id = game_id;
     const user_id = document.getElementById('user_id').value;
     const team_id = document.getElementById('team_id').value;
     const latitude = latitude;
@@ -73,27 +73,32 @@ async function joinGame() {
     document.getElementById('response').innerText = JSON.stringify(result);
 }
 
-async function displaySelectableTeams() {
-    fetch('https://themostdangerousgame.net/teams')
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(response);
-        }
-        return response.json();
-    })
-    .then(data => {
-        const dropdown = document.getElementById('team_id');
-        dropdown.innerHTML = '';
-        data.forEach(team => {
-            const option = document.createElement('option');
-            option.value = team.team_id;
-            option.textContent = team.team_id;
-            dropdown.appendChild(option);
+/** 
+ * async function displaySelectableTeams() {
+        fetch('https://themostdangerousgame.net/teams')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(response);
+            }
+            return response.json();
+        })
+        .then(data => {
+            const dropdown = document.getElementById('team_id');
+            dropdown.innerHTML = '';
+            data.forEach(team => {
+                const option = document.createElement('option');
+                option.value = team.team_id;
+                option.textContent = team.team_id;
+                dropdown.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching games:', error);
+            const dropdown = document.getElementById('team_id');
+            dropdown.innerHTML = '<option>Error loading games</option>';
         });
-    })
-    .catch(error => {
-        console.error('Error fetching games:', error);
-        const dropdown = document.getElementById('team_id');
-        dropdown.innerHTML = '<option>Error loading games</option>';
-    });
-}
+    }
+*/
+
+
+
