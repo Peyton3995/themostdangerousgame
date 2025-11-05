@@ -2,7 +2,8 @@
 
 const displayLocation = document.getElementById("local")
 
-let map, marker;
+let latitude
+let longitude
 
 window.onload = () => {
     getLocation();
@@ -11,7 +12,7 @@ window.onload = () => {
 async function getLocation() {
   if (navigator.geolocation) {
     console.log("estimating user position...")
-    displayLocation.innerHTML = 'Latitude: YY.yyyyyyy --- Longitude: XX.xxxxxxx'
+    displayLocation.innerHTML = 'Latitude: YY.yyyyyy --- Longitude: XX.xxxxxx'
     navigator.geolocation.getCurrentPosition(success, error);
   } else { 
     console.log("Geolocation is not supported by this browser.");
@@ -19,12 +20,10 @@ async function getLocation() {
 }
     
 async function success(position) {
-    const lat = position.coords.latitude;
-    const lng = position.coords.longitude;
-    displayLocation.innerText = `Latitude: ${lat} --- Longitude: ${lng}`;
-    console.log(`Latitude: ${lat}, Longitude: ${lng}`);
-
-    const userLocation = { lat, lng };
+    latitude = position.coords.latitude;
+    longitude = position.coords.longitude;
+    displayLocation.innerText = `Latitude: ${latitude} --- Longitude: ${longitude}`;
+    console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
 
     setTimeout(getLocation, 30000);
 }

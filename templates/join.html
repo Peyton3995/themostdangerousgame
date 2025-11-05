@@ -1,0 +1,55 @@
+<!-- tell browser what to expect-->
+<!DOCTYPE html>
+
+<link rel="icon" href="data:,">
+
+<!-- specify english as the language -->
+<html lang="EN">
+
+<head>
+    <title>The Most Dangerous Game</title>
+    <!-- provide character set-->
+    <meta charset="utf-8">
+    <!-- ensure page displays across all platforms-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <!-- centering div-->
+    <div style="margin-left: auto; margin-right: auto; text-align: center">
+        <h2 id="top">Welcome to...</h2>
+        <h1><b>THE MOST DANGEROUS GAME</b></h1>
+    </div>
+
+    <div style="margin-left: auto; margin-right: auto; text-align: center">
+        <div id="local"></div>
+        <form>
+            <h3>Join a game...</h3>
+            <label for="team">Team:</label>
+            <select id="team_id">
+                <option value="">Loading teams...</option>
+            </select>
+
+            <label for="user_id">User:</label>
+            <input type="text" id="user_id" name="user_id" required>
+
+            <label for="longitude">Longitude:</label>
+            <input type="text" id="game_longitude" name="longitude" required>
+
+            <button type="button" onclick="submitUser()">Submit</button>
+        </form>
+        <p id="response"></p>
+    </div>
+
+    <footer>
+        <div>
+            <h2><a href="/">Home</a></h2>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='joinGame.js') }}"></script>
+</body>
+
+</html>

@@ -66,8 +66,23 @@
         </table>
     </div>
 
+    <div>
+        <h2><a id="join" href="themostdangerousgame.net/join/">Join the game...</a></h2>
+    </div>
+
 
     <script src="{{ url_for('static', filename='gameDisplay.js') }}"></script>
+
+    <script>
+        window.onload = () => {
+            const pathParts = window.location.pathname.split('/');
+            const game_id = pathParts[pathParts.length - 1];
+
+            const hyperLink = document.getElementById("join");
+
+            hyperLink.href += game_id;
+        }
+    </script>
 
     <footer>
         <div>
