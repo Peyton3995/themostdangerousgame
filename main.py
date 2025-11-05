@@ -55,6 +55,14 @@ def init_db():
         )
     """)
     conn.commit()
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS teams (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            game_id TEXT NOT NULL,
+            team_id TEXT UNIQUE NOT NULL
+        )
+    """)
+    conn.commit()
     conn.close()
 
 @app.route("/")
@@ -283,7 +291,59 @@ def delete_game(game_id):
     if result.rowcount == 0:
         return jsonify({"message": f"Game id not found. Doesn't exist or already deleted '{game_id}'"}), 404
 
-    return jsonify({"message": f"Deleted game id'{game_id}'"}), 200
+    return jsonify({"message": f"Deleted game id: '{game_id}'"}), 200
+
+# --- END POINTS FOR TEAM CREATION AND DELETING --- #
+
+# --- POST: Add a new team ---
+@app.route("/teams", methods=["POST"])
+def add_team():
+    data = request.get_json()
+
+    game_id = data.get("game_id")
+    team_id = data.get("team_id")
+
+    if team_id is None or game_id is None:
+        return jsonify({"error": "game_id, and team_id are required"}), 400
+
+    try:
+        conn = get_db_connection()
+        conn.execute(
+            "INSERT INTO teams (team_id, game_id) VALUES (?, ?)",
+            (team_id, game_id),
+        )
+        conn.commit()
+        conn.close()
+        return jsonify({"message": "Team added successfully"}), 201
+    except sqlite3.IntegrityError:
+        conn.commit()
+        conn.close()
+        return jsonify({"error": "Team already exists. Use a unique name"}), 409
+
+
+# --- GET: Retrieve all teams for a given game ---
+@app.route("/teams/<game_id>", methods=["GET"])
+def get_teams(game_id):
+    conn = get_db_connection()
+    rows = conn.execute("SELECT * FROM teams WHERE game_id = ?", (game_id,)).fetchall()
+    conn.commit()
+    conn.close()
+    teams = [dict(row) for row in rows]
+    
+    return jsonify(teams)
+
+# --- DELETE: Delete all positions for a given team_id ---
+@app.route("/teams/<team_id>", methods=["DELETE"])
+def delete_team(team_id):
+    conn = get_db_connection()
+    result = conn.execute("DELETE FROM teams WHERE team_id = ?", (team_id,))
+    conn.commit()
+    conn.close()
+
+    if result.rowcount == 0:
+        return jsonify({"message": f"Team id not found. Doesn't exist or already deleted '{team_id}'"}), 404
+
+    return jsonify({"message": f"Deleted team id: '{team_id}'"}), 200
 
 
 if __name__ == "__main__":
