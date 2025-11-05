@@ -4,6 +4,8 @@ let longitude
 const pathParts = window.location.pathname.split('/');
 const gameId = pathParts[pathParts.length - 1];
 
+const displayLocation = document.getElementById("local")
+
 window.onload = () => {
     getLocation();
     displaySelectableTeams();
