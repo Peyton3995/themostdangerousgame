@@ -3,8 +3,7 @@ from flask_cors import CORS
 import sqlite3
 
 app = Flask(__name__)
-CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "*").split(',')
-CORS(app, resources={r"/*": {"origins": CORS_ORIGINS}})
+CORS(app)
 
 DATABASE = "game.db"
 
