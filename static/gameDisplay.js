@@ -1,18 +1,28 @@
 // on page load, make a get request
+
+let game_id;
+
 window.onload = () => {
     loadGamePositions();
+
+    const pathParts = window.location.pathname.split('/');
+    game_id = pathParts[pathParts.length - 1];
+
+    const hyperLink = document.getElementById("join");
+
+    hyperLink.href += game_id;    
 }
 
 async function loadGamePositions() {
     const pathParts = window.location.pathname.split('/');
     const gameId = pathParts[pathParts.length - 1];
-    document.getElementById('game-title').textContent = 'Game: ' + gameId;
+    document.getElementById('game-title').textContent = 'Game: ' + game_id;
 
     const playersBody = document.querySelector('#players-table tbody');
     const pointsBody = document.querySelector('#points-table tbody');
 
     // Fetch player positions
-    fetch(`https://themostdangerousgame.net/positions/${gameId}`)
+    fetch(`https://themostdangerousgame.net/positions/${game_id}`)
         .then(response => response.json())
         .then(data => {
             playersBody.innerHTML = '';
@@ -37,7 +47,7 @@ async function loadGamePositions() {
     );
 
     // Fetch point locations
-    fetch(`https://themostdangerousgame.net/points/${gameId}`)
+    fetch(`https://themostdangerousgame.net/points/${game_id}`)
         .then(response => response.json())
         .then(data => {
         pointsBody.innerHTML = '';
