@@ -7,10 +7,9 @@ const game_id = pathParts[pathParts.length - 1];
 const displayLocation = document.getElementById("local")
 
 window.onload = () => {
+    document.getElementById('game-title').innerHTML = 'Game: ' + game_id;
     getLocation();
     displaySelectableTeams();
-
-    document.getElementById('game-title').textContent = 'Game: ' + game_id;
 }
 
 async function getLocation() {
