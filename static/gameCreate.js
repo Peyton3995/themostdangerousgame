@@ -1,5 +1,6 @@
 window.onload = () => {
     displaySelectableGames()
+    displaySelectableTeams()
     getLocation()
 }
 
