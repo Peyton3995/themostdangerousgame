@@ -166,7 +166,7 @@ async function displaySelectableGames() {
 }
 
 async function displaySelectableTeams() {
-    fetch('https://themostdangerousgame.net/teams')
+    fetch(`https://themostdangerousgame.net/teams/${document.getElementById('games_users').innerText}`)
     .then(response => {
         if (!response.ok) {
             throw new Error('Network response was not ok');
