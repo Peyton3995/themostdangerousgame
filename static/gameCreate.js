@@ -177,8 +177,8 @@ async function displaySelectableTeams() {
         dropdown_users.innerHTML = '';
         data.forEach(game => {
             const option = document.createElement('option');
-            option.value = game.game_id;
-            option.textContent = game.game_id;
+            option.value = game.team_id;
+            option.textContent = game.team_id;
             dropdown_users.appendChild(option);
         });
     })
