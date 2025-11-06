@@ -41,8 +41,8 @@ async function submitGame() {
 async function submitPoint() {
     const point_id = document.getElementById('point_id').value.trim()
     const game_id = document.getElementById('games_points').value;
-    const latitude = latitude;
-    const longitude = longitude;
+    const point_latitude = latitude;
+    const point_longitude = longitude;
 
 
     if (!game_id || !point_id) {
@@ -58,8 +58,8 @@ async function submitPoint() {
             body: JSON.stringify({
             point_id: point_id,
             game_id: game_id,
-            latitude: latitude,
-            longitude: longitude
+            latitude: point_latitude,
+            longitude: point_longitude
         })
     });
 
