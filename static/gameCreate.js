@@ -41,8 +41,8 @@ async function submitGame() {
 async function submitPoint() {
     const point_id = document.getElementById('point_id').value.trim()
     const game_id = document.getElementById('games_points').value;
-    const point_latitude = document.getElementBy('point_lat').value.trim()
-    const point_longitude = document.getElementBy('point_long').value.trim()
+    const point_latitude = document.getElementById('point_lat').value.trim()
+    const point_longitude = document.getElementById('point_long').value.trim()
 
 
     if (!game_id || !point_id || !point_latitude || !point_longitude) {
