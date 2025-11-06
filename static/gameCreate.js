@@ -152,8 +152,6 @@ async function displaySelectableGames() {
             option.textContent = game.game_id;
             dropdown_users.appendChild(option);
         });
-
-        displaySelectableTeams();
     })
     .catch(error => {
         console.error('Error fetching games:', error);
