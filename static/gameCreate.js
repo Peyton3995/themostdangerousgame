@@ -1,6 +1,5 @@
 window.onload = () => {
     displaySelectableGames()
-    displaySelectableTeams()
     getLocation()
 }
 
@@ -153,6 +152,8 @@ async function displaySelectableGames() {
             option.textContent = game.game_id;
             dropdown_users.appendChild(option);
         });
+
+        displaySelectableTeams();
     })
     .catch(error => {
         console.error('Error fetching games:', error);
@@ -165,8 +166,12 @@ async function displaySelectableGames() {
     });
 }
 
-async function displaySelectableTeams() {
-    fetch(`https://themostdangerousgame.net/teams/${document.getElementById('games_users').innerText}`)
+async function displaySelectableTeams(game) {
+
+    // clear out the dropdown before each call
+    document.getElementById("user_teams").innerHTML = "";
+
+    fetch(`https://themostdangerousgame.net/teams/${game}`)
     .then(response => {
         if (!response.ok) {
             throw new Error('Network response was not ok');
