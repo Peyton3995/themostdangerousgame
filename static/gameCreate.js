@@ -142,7 +142,6 @@ async function displaySelectableGames() {
 
         const dropdown_teams = document.getElementById('games_teams');
         dropdown_teams.innerHTML = '';
-        dropdown_teams.appendChild("")
         data.forEach(game => {
             const option = document.createElement('option');
             option.value = game.game_id;
@@ -156,7 +155,6 @@ async function displaySelectableGames() {
 
         const dropdown_users = document.getElementById('games_users');
         dropdown_users.innerHTML = '';
-        dropdown_users.appendChild("")
         data.forEach(game => {
             const option = document.createElement('option');
             option.value = game.game_id;
@@ -195,7 +193,6 @@ async function displaySelectableTeams(game) {
     .then(data => {
         const dropdown_users = document.getElementById('user_teams');
         dropdown_users.innerHTML = '';
-        dropdown_users.appendChild("");
         data.forEach(game => {
             const option = document.createElement('option');
             option.value = game.team_id;
