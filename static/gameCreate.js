@@ -50,7 +50,7 @@ async function submitPoint() {
         return;
     }
 
-    if(point_latitude.isNan() || point_longitude.isNan()){
+    if(isNan(point_latitude) || isNan(point_longitude)){
         document.getElementById('response').innerText = "Enter latitude and longitude need to be numbers..."
         return;
     }
