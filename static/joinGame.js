@@ -72,32 +72,32 @@ async function joinGame() {
     document.getElementById('response').innerText = JSON.stringify(result);
 }
 
-/** 
- * async function displaySelectableTeams() {
-        fetch('https://themostdangerousgame.net/teams')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(response);
-            }
-            return response.json();
-        })
-        .then(data => {
-            const dropdown = document.getElementById('team_id');
-            dropdown.innerHTML = '';
-            data.forEach(team => {
-                const option = document.createElement('option');
-                option.value = team.team_id;
-                option.textContent = team.team_id;
-                dropdown.appendChild(option);
-            });
-        })
-        .catch(error => {
-            console.error('Error fetching games:', error);
-            const dropdown = document.getElementById('team_id');
-            dropdown.innerHTML = '<option>Error loading games</option>';
+
+async function displaySelectableTeams() {
+    fetch('https://themostdangerousgame.net/teams')
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(response);
+        }
+        return response.json();
+    })
+    .then(data => {
+        const dropdown = document.getElementById('team_id');
+        dropdown.innerHTML = '';
+        data.forEach(team => {
+            const option = document.createElement('option');
+            option.value = team.team_id;
+            option.textContent = team.team_id;
+            dropdown.appendChild(option);
         });
-    }
-*/
+    })
+    .catch(error => {
+        console.error('Error fetching games:', error);
+        const dropdown = document.getElementById('team_id');
+        dropdown.innerHTML = '<option>Error loading games</option>';
+    });
+}
+
 
 
 
