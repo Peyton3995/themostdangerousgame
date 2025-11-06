@@ -101,7 +101,7 @@ async function displaySelectableGames() {
             const option = document.createElement('option');
             option.value = game.game_id;
             option.textContent = game.game_id;
-            dropdown.appendChild(option);
+            dropdown_points.appendChild(option);
         });
 
         const dropdown_teams = document.getElementById('games_teams');
@@ -110,7 +110,7 @@ async function displaySelectableGames() {
             const option = document.createElement('option');
             option.value = game.game_id;
             option.textContent = game.game_id;
-            dropdown.appendChild(option);
+            dropdown_teams.appendChild(option);
         });
     })
     .catch(error => {
