@@ -76,6 +76,11 @@ async function submitTeam() {
     const team_id = document.getElementById('team_id').value.trim()
     const game_id = document.getElementById('games_teams').value;
 
+    if (!game_id || !team_id) {
+        document.getElementById('response').innerText = "All fields must be filled..."
+        return;
+    }
+
     const response = await fetch('https://themostdangerousgame.net/teams', {
         method: 'POST',
         headers: {
@@ -98,6 +103,11 @@ async function submitUser() {
 
     const user_latitude = latitude;
     const user_longitude = longitude;
+
+    if (!game_id || !team_id || !user_id) {
+        document.getElementById('response').innerText = "All fields must be filled..."
+        return;
+    }
 
     const response = await fetch('https://themostdangerousgame.net/positions', {
         method: 'POST',
@@ -128,44 +138,44 @@ async function displaySelectableGames() {
     .then(data => {
         const dropdown_points = document.getElementById('games_points');
         dropdown_points.innerHTML = '';
+        // create placeholder for first value of dropdown
+        const option_points = document.createElement('option');
+        option_points.value = "";
+        option_points.textContent = "-select-";
+        dropdown_points.prepend(option_points); 
+        
         data.forEach(game => {
             const option = document.createElement('option');
             option.value = game.game_id;
             option.textContent = game.game_id;
             dropdown_points.appendChild(option);
         });
-        // create placeholder for first value of dropdown
-        const option_points = document.createElement('option');
-        option_points.value = "";
-        option_points.textContent = "-select-";
-        dropdown_points.prepend(option_points); 
 
         const dropdown_teams = document.getElementById('games_teams');
         dropdown_teams.innerHTML = '';
+        const option_teams = document.createElement('option');
+        option_teams.value = "";
+        option_teams.textContent = "-select-";
+        dropdown_teams.prepend(option_teams); 
         data.forEach(game => {
             const option = document.createElement('option');
             option.value = game.game_id;
             option.textContent = game.game_id;
             dropdown_teams.appendChild(option);
         });
-        const option_teams = document.createElement('option');
-        option_teams.value = "";
-        option_teams.textContent = "-select-";
-        dropdown_teams.prepend(option_teams); 
 
         const dropdown_users = document.getElementById('games_users');
         dropdown_users.innerHTML = '';
+        const option_users = document.createElement('option');
+        option_users.value = "";
+        option_users.textContent = "-select-";
+        dropdown_users.prepend(option_users); 
         data.forEach(game => {
             const option = document.createElement('option');
             option.value = game.game_id;
             option.textContent = game.game_id;
             dropdown_users.appendChild(option);
         });
-        const option_users = document.createElement('option');
-        option_users.value = "";
-        option_users.textContent = "-select-";
-        dropdown_users.prepend(option_users); 
-
     })
     .catch(error => {
         console.error('Error fetching games:', error);
