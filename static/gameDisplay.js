@@ -32,6 +32,7 @@ async function loadGamePositions() {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${p.user_id}</td>
+                    <td>${p.team_id}</td>
                     <td>${p.latitude}</td>
                     <td>${p.longitude}</td>
                     <td>${p.timestamp}</td>
