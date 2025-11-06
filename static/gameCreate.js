@@ -128,13 +128,17 @@ async function displaySelectableGames() {
     .then(data => {
         const dropdown_points = document.getElementById('games_points');
         dropdown_points.innerHTML = '';
-            dropdown_points.appendChild("");
         data.forEach(game => {
             const option = document.createElement('option');
             option.value = game.game_id;
             option.textContent = game.game_id;
             dropdown_points.appendChild(option);
         });
+        // create placeholder for first value of dropdown
+        const option_points = document.createElement('option');
+        option_points.value = "";
+        option_points.textContent = "-select-";
+        dropdown_points.prepend(option_points); 
 
         const dropdown_teams = document.getElementById('games_teams');
         dropdown_teams.innerHTML = '';
@@ -145,6 +149,10 @@ async function displaySelectableGames() {
             option.textContent = game.game_id;
             dropdown_teams.appendChild(option);
         });
+        const option_teams = document.createElement('option');
+        option_teams.value = "";
+        option_teams.textContent = "-select-";
+        dropdown_teams.prepend(option_teams); 
 
         const dropdown_users = document.getElementById('games_users');
         dropdown_users.innerHTML = '';
@@ -155,6 +163,11 @@ async function displaySelectableGames() {
             option.textContent = game.game_id;
             dropdown_users.appendChild(option);
         });
+        const option_users = document.createElement('option');
+        option_users.value = "";
+        option_users.textContent = "-select-";
+        dropdown_users.prepend(option_users); 
+
     })
     .catch(error => {
         console.error('Error fetching games:', error);
@@ -189,6 +202,10 @@ async function displaySelectableTeams(game) {
             option.textContent = game.team_id;
             dropdown_users.appendChild(option);
         });
+        const option_teams = document.createElement('option');
+        option_teams.value = "";
+        option_teams.textContent = "-select-";
+        dropdown_users.prepend(option_teams); 
     })
     .catch(error => {
         console.error('Error fetching games:', error);
