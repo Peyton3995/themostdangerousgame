@@ -32,7 +32,7 @@
             <input type="text" id="game_id" name="game_id" required>
 
             <button type="button" onclick="submitGame()">Submit</button>
-            <h3><i>On successfull submission, reload page to add points & teams...</i></h3>
+            <h3><i>On successfull submission, reload page to add points, teams, & users...</i></h3>
         </form>
 
         <form>
@@ -64,6 +64,24 @@
 
             <label for="team_id">Team ID:</label>
             <input type="text" id="team_id" name="team_id" required>
+
+            <button type="button" onclick="submitTeam()">Submit</button>
+        </form>
+
+        <form>
+            <h3>Create users (for an existing game)...</h3>
+            <label for="games_users">Game ID:</label>
+            <select id="games_users">
+                <option value="">Loading games...</option>
+            </select>
+
+            <label for="user_teams">Team ID:</label>
+            <select id="user_teams">
+                <option value="">Loading games...</option>
+            </select>
+
+            <label for="user_id">User ID:</label>
+            <input type="text" id="user_id" name="user_id" required>
 
             <button type="button" onclick="submitTeam()">Submit</button>
         </form>
