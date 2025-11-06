@@ -99,7 +99,7 @@ async function submitUser() {
     const user_latitude = latitude;
     const user_longitude = longitude;
 
-    const response = await fetch('https://themostdangerousgame.net/teams', {
+    const response = await fetch('https://themostdangerousgame.net/positions', {
         method: 'POST',
         headers: {
                 'Content-Type': 'application/json'
