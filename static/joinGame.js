@@ -1,16 +1,13 @@
-let latitude
-let longitude
-
 const pathParts = window.location.pathname.split('/');
-console.log(pathParts)
-const game_id = pathParts[pathParts.length - 1];
+const game_id = pathParts[2];
+const user_id = pathParts[3];
 
 const displayLocation = document.getElementById("local")
 
 window.onload = () => {
     document.getElementById('game-title').innerHTML = 'Game: ' + game_id;
     getLocation();
-    displaySelectableTeams();
+    loadGamePositions();
 }
 
 async function getLocation() {
@@ -24,10 +21,12 @@ async function getLocation() {
 }
     
 async function success(position) {
-    latitude = position.coords.latitude;
-    longitude = position.coords.longitude;
-    displayLocation.innerText = `Latitude: ${latitude} --- Longitude: ${longitude}`;
-    console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
+    const new_latitude = position.coords.latitude;
+    const new_longitude = position.coords.longitude;
+    displayLocation.innerText = `Latitude: ${new_latitude} --- Longitude: ${_longitude}`;
+    console.log(`Latitude: ${new_latitude}, Longitude: ${new_longitude}`);
+
+    updateUserPosition(new_latitude, new_longitude)
 }
 
 function error(error) {
@@ -106,4 +105,19 @@ async function loadGamePositions() {
             pointsBody.innerHTML = '<tr><td colspan="5">Failed to load point data.</td></tr>';
         }
     );
+}
+
+async function updateUserPosition(new_lat, new_long) {
+    const response = await fetch(`https://themostdangerousgame.net/positions/${user_id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+            body: JSON.stringify({
+            latitude: new_lat,
+            longitude: new_long
+        })
+    });
+
+    console.log(response)
 }
