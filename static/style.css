@@ -63,16 +63,24 @@ h2 {
 }
 
 h3, p {
-    color: grey
+    color: white
 }
 
 span {
-    color:darkgrey
+    color: white
 }
 
 label {
     color: white;
     margin-left: 10px
+}
+
+a:link {
+    color: red
+}
+
+a:visited {
+    color: red
 }
 
 footer {

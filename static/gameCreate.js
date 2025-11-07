@@ -99,7 +99,7 @@ async function submitTeam() {
 async function submitUser() {
     const user_id = document.getElementById('user_id').value.trim()
     const team_id = document.getElementById('user_teams').value;
-    const game_id = document.getElementById('games_teams').value;
+    const game_id = document.getElementById('games_users').value;
 
     const user_latitude = latitude;
     const user_longitude = longitude;
@@ -143,7 +143,7 @@ async function displaySelectableGames() {
         option_points.value = "";
         option_points.textContent = "-select-";
         dropdown_points.prepend(option_points); 
-        
+
         data.forEach(game => {
             const option = document.createElement('option');
             option.value = game.game_id;
