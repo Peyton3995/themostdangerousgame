@@ -2,6 +2,9 @@ const pathParts = window.location.pathname.split('/');
 const game_id = pathParts[2];
 const user_id = pathParts[3];
 
+let user_latitude;
+let user_longitude;
+
 const displayLocation = document.getElementById("local")
 
 window.onload = () => {
@@ -24,6 +27,10 @@ async function getLocation() {
 async function success(position) {
     const new_latitude = position.coords.latitude;
     const new_longitude = position.coords.longitude;
+
+    user_latitude = new_latitude;
+    user_longitude = new_longitude;
+
     displayLocation.innerText = `Latitude: ${new_latitude} --- Longitude: ${new_longitude}`;
     console.log(`Latitude: ${new_latitude}, Longitude: ${new_longitude}`);
 
@@ -63,15 +70,18 @@ async function loadGamePositions() {
                 return;
             }
             data.forEach(p => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
+                if(p.user_id !== user_id) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
                     <td>${p.user_id}</td>
                     <td>${p.team_id}</td>
                     <td>${p.latitude}</td>
                     <td>${p.longitude}</td>
                     <td>${p.timestamp}</td>
-                `;
-                playersBody.appendChild(row);
+                    <td>${distanceInFeet(user_latitude, user_longitude, p.latitude, p.longitude)}</td>
+                    `;
+                    playersBody.appendChild(row);
+                }
             });
         })
         .catch(() => {
@@ -97,6 +107,7 @@ async function loadGamePositions() {
                 <td>${point.team_id}</td>
                 <td>${point.defenders}</td>
                 <td>${point.timestamp}</td>
+                <td>${distanceInFeet(user_latitude, user_longitude, p.latitude, p.longitude)}</td>
             `;
             pointsBody.appendChild(row);
         });
@@ -120,4 +131,23 @@ async function updateUserPosition(new_lat, new_long) {
     });
 
     console.log(response)
+}
+
+function distanceInFeet(lat1, lon1, lat2, lon2) {
+    const R = 6371000; // radius of the earth in meters
+    const toRad = angle => angle * (Math.PI / 180);
+
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+
+    const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) ** 2;
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distanceMeters = R * c;
+    const distanceFeet = distanceMeters * 3.28084; // converting meters to feet
+
+    return distanceFeet;
 }
