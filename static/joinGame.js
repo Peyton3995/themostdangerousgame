@@ -11,7 +11,6 @@ window.onload = () => {
     document.getElementById('game-title').innerHTML = 'Game: ' + game_id;
     document.getElementById('user').innerHTML = 'User: ' + user_id;
     getLocation();
-    loadGamePositions();
 }
 
 async function getLocation() {
@@ -34,6 +33,9 @@ async function success(position) {
     displayLocation.innerText = `Latitude: ${new_latitude} --- Longitude: ${new_longitude}`;
     console.log(`Latitude: ${new_latitude}, Longitude: ${new_longitude}`);
 
+    // a successful call will then populate all the tables
+    // this prevents race conditions
+    loadGamePositions()
     updateUserPosition(new_latitude, new_longitude)
 }
 
