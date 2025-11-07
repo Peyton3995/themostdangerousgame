@@ -107,7 +107,7 @@ async function loadGamePositions() {
                 <td>${point.team_id}</td>
                 <td>${point.defenders}</td>
                 <td>${point.timestamp}</td>
-                <td>${distanceInFeet(user_latitude, user_longitude, p.latitude, p.longitude)}</td>
+                <td>${distanceInFeet(user_latitude, user_longitude, point.latitude, point.longitude)}</td>
             `;
             pointsBody.appendChild(row);
         });
