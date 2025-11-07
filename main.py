@@ -78,7 +78,7 @@ def display_game(game_id):
     return render_template('display.html')
 
 @app.route('/join/<game_id>/<user_id>')
-def join_game(user_id):
+def join_game(game_id, user_id):
     return render_template('join.html')
 
 #--- END POINT FOR CREATING USERS AND STORING AND UPDATING THEIR POSITIONS ---#
