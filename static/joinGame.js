@@ -2,6 +2,7 @@ let latitude
 let longitude
 
 const pathParts = window.location.pathname.split('/');
+console.log(pathParts)
 const game_id = pathParts[pathParts.length - 1];
 
 const displayLocation = document.getElementById("local")
@@ -46,58 +47,63 @@ function error(error) {
     }
 }
 
-async function joinGame() {
-    const game_id = game_id;
-    const user_id = document.getElementById('user_id').value;
-    const team_id = document.getElementById('team_id').value;
-    const latitude = latitude;
-    const longitude = longitude;
+async function loadGamePositions() {
+    document.getElementById('game-title').textContent = 'Game: ' + game_id;
 
-    const response = await fetch('https://themostdangerousgame.net/positions', {
-        method: 'POST',
-        headers: {
-                'Content-Type': 'application/json'
-        },
-            body: JSON.stringify({
-                game_id: game_id,
-                latitude: latitude,
-                longitude: longitude,
-                user_id: user_id,
-                team_id: team_id
-            })
+    const playersBody = document.querySelector('#players-table tbody');
+    const pointsBody = document.querySelector('#points-table tbody');
+
+    // Fetch player positions
+    fetch(`https://themostdangerousgame.net/positions/${game_id}`)
+        .then(response => response.json())
+        .then(data => {
+            playersBody.innerHTML = '';
+            if (data.length === 0) {
+                playersBody.innerHTML = '<tr><td colspan="4">No player data available.</td></tr>';
+                return;
+            }
+            data.forEach(p => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${p.user_id}</td>
+                    <td>${p.team_id}</td>
+                    <td>${p.latitude}</td>
+                    <td>${p.longitude}</td>
+                    <td>${p.timestamp}</td>
+                    <td><a href="https://themostdangerousgame.net/join/${game_id}/${p.user_id}">  Use  </a></td>
+                `;
+                playersBody.appendChild(row);
+            });
+        })
+        .catch(() => {
+            playersBody.innerHTML = '<tr><td colspan="4">Failed to load player data.</td></tr>';
         }
     );
 
-    const result = await response.json();
-    document.getElementById('response').innerText = JSON.stringify(result);
-}
-
-
-async function displaySelectableTeams() {
-    fetch('https://themostdangerousgame.net/teams')
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(response);
+    // Fetch point locations
+    fetch(`https://themostdangerousgame.net/points/${game_id}`)
+        .then(response => response.json())
+        .then(data => {
+        pointsBody.innerHTML = '';
+        if (data.length === 0) {
+            pointsBody.innerHTML = '<tr><td colspan="5">No points available.</td></tr>';
+            return;
         }
-        return response.json();
-    })
-    .then(data => {
-        const dropdown = document.getElementById('team_id');
-        dropdown.innerHTML = '';
-        data.forEach(team => {
-            const option = document.createElement('option');
-            option.value = team.team_id;
-            option.textContent = team.team_id;
-            dropdown.appendChild(option);
+        data.forEach(point => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${point.point_id}</td>
+                <td>${point.latitude}</td>
+                <td>${point.longitude}</td>
+                <td>${point.team_id}</td>
+                <td>${point.defenders}</td>
+                <td>${point.timestamp}</td>
+            `;
+            pointsBody.appendChild(row);
         });
-    })
-    .catch(error => {
-        console.error('Error fetching games:', error);
-        const dropdown = document.getElementById('team_id');
-        dropdown.innerHTML = '<option>Error loading games</option>';
-    });
+        })
+        .catch(() => {
+            pointsBody.innerHTML = '<tr><td colspan="5">Failed to load point data.</td></tr>';
+        }
+    );
 }
-
-
-
-
