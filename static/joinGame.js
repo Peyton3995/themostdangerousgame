@@ -6,6 +6,7 @@ const displayLocation = document.getElementById("local")
 
 window.onload = () => {
     document.getElementById('game-title').innerHTML = 'Game: ' + game_id;
+    document.getElementById('user').innerHTML = 'User: ' + user_id;
     getLocation();
     loadGamePositions();
 }
@@ -23,7 +24,7 @@ async function getLocation() {
 async function success(position) {
     const new_latitude = position.coords.latitude;
     const new_longitude = position.coords.longitude;
-    displayLocation.innerText = `Latitude: ${new_latitude} --- Longitude: ${_longitude}`;
+    displayLocation.innerText = `Latitude: ${new_latitude} --- Longitude: ${new_longitude}`;
     console.log(`Latitude: ${new_latitude}, Longitude: ${new_longitude}`);
 
     updateUserPosition(new_latitude, new_longitude)
