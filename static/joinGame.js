@@ -70,7 +70,6 @@ async function loadGamePositions() {
                     <td>${p.latitude}</td>
                     <td>${p.longitude}</td>
                     <td>${p.timestamp}</td>
-                    <td><a href="https://themostdangerousgame.net/join/${game_id}/${p.user_id}">  Use  </a></td>
                 `;
                 playersBody.appendChild(row);
             });
