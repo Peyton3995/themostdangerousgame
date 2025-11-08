@@ -124,10 +124,9 @@ async function loadGamePositions() {
             `;
             pointsBody.appendChild(row);
         });
-        findNearestPoint()
         })
         .catch(() => {
-            pointsBody.innerHTML = '<tr><td colspan="5">Failed to load point data.</td></tr>';
+            pointsBody.innerHTML = `<tr><td colspan="5">${gamePoints[0].point_id}</td></tr>`;
         }
     )
 }
