@@ -6,6 +6,7 @@ let user_latitude;
 let user_longitude;
 
 let gamePoints;
+let playerData;
 
 const displayLocation = document.getElementById("local")
 
@@ -73,6 +74,10 @@ async function loadGamePositions() {
                 playersBody.innerHTML = '<tr><td colspan="4">No player data available.</td></tr>';
                 return;
             }
+
+            playerData = data;
+            console.log(data)
+
             data.forEach(p => {
                 if(p.user_id !== user_id) {
                     const row = document.createElement('tr');
@@ -142,6 +147,25 @@ async function updateUserPosition(new_lat, new_long) {
     console.log(response)
 }
 
+async function updatePoint(captured, defenders, attackers, team_id, point_id){
+    const response = await fetch(`https://themostdangerousgame.net/positions/${game_id}/${point_id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+            body: JSON.stringify({
+                captured: captured,
+                defenders: defenders,
+                attackers: attackers,
+                team_id: team_id,
+                point_id: point_id,
+                game_id: game_id
+            })
+    })
+
+    console.log(response) 
+}
+
 function distanceInFeet(lat1, lon1, lat2, lon2) {
     const R = 6371000; // radius of the earth in meters
     const toRad = angle => angle * (Math.PI / 180);
@@ -188,6 +212,74 @@ function findNearestPoint() {
     console.log(closestPoint)
 
     if(closestPoint.length > 0) {
+        findClosePlayers(closestPoint[0].point_id, closestPoint[0].latitude, closestPoint[0].longitude)
+
         document.getElementById('test').innerHTML = closestPoint[0].point_id;
+    }
+}
+
+function findClosePlayers(point, point_latitude, point_longitude) {
+    // find recent players, movement made in the last two hours
+    const recentPlayers = playerData.filter(p => {
+        const playerTime = new Date(p.timestamp.replace(' ', 'T')); // Convert to ISO format
+        const timeDiffHours = (now - playerTime) / (1000 * 60 * 60);
+        return timeDiffHours <= 2; // within 2 hours
+    });
+
+    // append distance player json object
+    console.log(recentPlayers)
+    const distanceToPoint = recentPlayers.map(p => ({
+        ...p,
+        distance: distanceInFeet(point_latitude, point_longitude, p.latitude, p.longitude)
+    }));
+    console.log(distanceToPoint)
+
+    // find players within a hundred feet of the point
+    const within100FeetAndTwoHoursAgo = distanceToPoint.filter(p => p.distance < 100)
+    console.log(within100FeetAndTwoHoursAgo)
+
+    // we have all the information we need, now go to seeing if this point can be captured
+    capturingAPoint(point, within100FeetAndTwoHoursAgo)
+}
+
+function capturingAPoint(closePoint, closePlayers) {
+    const matchedPoint = gamePoints.find(point => point.point_id === closePoint);
+
+    let topTeam = null;
+    let maxCount = 0;
+    let secondCount = 0;
+
+    const teams = {}; // hold team
+    closePlayers.forEach(player => {
+        const team = player.team_id;
+        if (!teams[team]) {
+            teams[team] = [];
+        }
+        teams[team].push(player);
+    });
+
+    // if point is unclaimed, give it to the team with the most present players
+    if(matchedPoint.team_id === "NOBODY"){
+        // Create an array of { team, count }
+        const teamCounts = Object.entries(teams).map(([team, players]) => ({
+            team,
+            count: players.length
+        }));
+
+        teamCounts.sort((a, b) => b.count - a.count);
+
+        topTeam = teamCounts[0]?.team || null;
+        topCount = teamCounts[0]?.count || 0;
+        secondCount = teamCounts[1]?.count || 0;
+
+        console.log("Top team:", topTeam, "Count:", topCount);
+        console.log("Second team count:", secondCount);
+
+        if (topCount === secondCount) {
+            console.log("Capture blocked — tie between top teams.");
+            return;
+        } else {
+            updatePoint(1, maxCount, secondCount, topTeam, matchedPoint.point_id)
+        }
     }
 }
