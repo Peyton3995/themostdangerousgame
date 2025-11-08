@@ -248,42 +248,37 @@ function findClosePlayers(point, point_latitude, point_longitude) {
 
 function capturingAPoint(closePoint, closePlayers) {
     const matchedPoint = gamePoints.find(point => point.point_id === closePoint);
+    console.log(matchedPoint)
 
-    let topTeam = null;
-    let maxCount = 0;
-    let secondCount = 0;
+    let teamCounts = {};
 
-    const teams = {}; // hold team
-    closePlayers.forEach(player => {
-        const team = player.team_id;
-        if (!teams[team]) {
-            teams[team] = [];
-        }
-        teams[team].push(player);
+    closePlayers.forEach(obj => {
+        const team = obj.team_id;
+        teamCounts[team] = (teamCounts[team] || 0) + 1;
     });
 
-    // if point is unclaimed, give it to the team with the most present players
-    if(matchedPoint.team_id === "NOBODY"){
-        // Create an array of { team, count }
-        const teamCounts = Object.entries(teams).map(([team, players]) => ({
-            team,
-            count: players.length
-        }));
+    console.log(teamCounts)
 
-        teamCounts.sort((a, b) => b.count - a.count);
+    const entries = Object.entries(teamCounts)
 
-        topTeam = teamCounts[0]?.team || null;
-        topCount = teamCounts[0]?.count || 0;
-        secondCount = teamCounts[1]?.count || 0;
-
-        console.log("Top team:", topTeam, "Count:", topCount);
-        console.log("Second team count:", secondCount);
-
-        if (topCount === secondCount) {
-            console.log("Capture blocked — tie between top teams.");
-            return;
-        } else {
-            updatePoint(1, maxCount, secondCount, topTeam, matchedPoint.point_id)
-        }
+    if (entries.length === 0) {
+        return { winningTeam: null, winningCount: 0, secondCount: 0 };
     }
+
+    // Sort descending by count
+    entries.sort((a, b) => b[1] - a[1]);
+
+    const winningTeam = entries[0][0];
+    console.log(winningTeam)
+    const winningCount = entries[0][1];
+    console.log(winningCount)
+    const secondCount = entries[1] ? entries[1][1] : 0;
+    console.log(secondCount)
+
+    if((matchedPoint.defenders < winningCount) && (winningCount !== secondCount)){
+        console.log("updating point")
+        updatePoint(1, winningCount, secondCount, winningTeam, matchedPoint.point_id)
+    }
+
+
 }
