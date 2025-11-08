@@ -119,12 +119,11 @@ async function loadGamePositions() {
             `;
             pointsBody.appendChild(row);
         });
+        findNearestPoint()
         })
         .catch(() => {
             pointsBody.innerHTML = '<tr><td colspan="5">Failed to load point data.</td></tr>';
         }
-    ).then(
-        findNearestPoint()
     )
 }
 
