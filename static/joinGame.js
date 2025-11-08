@@ -102,6 +102,10 @@ async function loadGamePositions() {
             pointsBody.innerHTML = '<tr><td colspan="5">No points available.</td></tr>';
             return;
         }
+
+        gamePoints = data
+        console.log(data);
+        
         data.forEach(point => {
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -115,9 +119,6 @@ async function loadGamePositions() {
             `;
             pointsBody.appendChild(row);
         });
-
-        gamePoints = data
-        console.log(data);
         })
         .catch(() => {
             pointsBody.innerHTML = '<tr><td colspan="5">Failed to load point data.</td></tr>';
