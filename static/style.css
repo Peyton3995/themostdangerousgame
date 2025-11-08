@@ -28,13 +28,22 @@ table {
 th {
     text-align: center;
     padding-bottom: 5px;
-    color: white
+    color: white;
 }
 
 td {
     padding-bottom: 5px;
     padding-top: 5px;
-    color: white
+    color: white;
+}
+
+table {
+    border-spacing: 15px 0;
+}
+
+td {
+    padding: 10px;
+    border: 1px solid white;
 }
 
 /* Ensures title sections are always shorter than description sections */

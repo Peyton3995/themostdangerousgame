@@ -5,6 +5,8 @@ const user_id = pathParts[3];
 let user_latitude;
 let user_longitude;
 
+let gamePoints;
+
 const displayLocation = document.getElementById("local")
 
 window.onload = () => {
@@ -113,6 +115,9 @@ async function loadGamePositions() {
             `;
             pointsBody.appendChild(row);
         });
+
+        gamePoints = data
+        console.log(data);
         })
         .catch(() => {
             pointsBody.innerHTML = '<tr><td colspan="5">Failed to load point data.</td></tr>';
@@ -133,6 +138,12 @@ async function updateUserPosition(new_lat, new_long) {
     });
 
     console.log(response)
+
+    let nearestPoint = findNearestPoint()
+
+    if(nearestPoint.length > 0) {
+        document.getElementById('test').innerHTML = nearestPoint
+    }
 }
 
 function distanceInFeet(lat1, lon1, lat2, lon2) {
@@ -151,5 +162,32 @@ function distanceInFeet(lat1, lon1, lat2, lon2) {
     const distanceMeters = R * c;
     const distanceFeet = distanceMeters * 3.28084; // converting meters to feet
 
-    return distanceFeet;
+    return (Math.trunc(distanceFeet * 1000) / 1000); // trunc to thousandths place
+}
+
+function findNearestPoint() {
+    // append distance to each one
+    const distanceToPoints = gamePoints.map(d => ({
+        ...d,
+        distance: distanceInFeet(latitude, longitude, d.latitude, d.longitude)
+    }));
+    console.log(distanceToPoints)
+
+    // iterate again through fields, looking for one within a hundred feet
+    const within100Feet = distanceToPoints.filter(u => u.distance < 100);
+    console.log((within100Feet))
+
+    // array for storing closest points
+    let closestPoint = []
+
+    // incase there are more than 1 point within a hundred feet, sort for the closest one
+    if(within100Feet.length > 0) {
+        const closest = within100Feet.reduce((min, curr) =>
+            curr.distance < min.distance ? curr : min
+        );
+        closestPoint.push(closest);
+    }
+
+    console.log(closestPoint)
+    return closestPoint
 }
