@@ -2,14 +2,7 @@
 
 let game_id;
 
-window.onload = () => {
-    const pathParts = window.location.pathname.split('/');
-    game_id = pathParts[pathParts.length - 1];
-
-    const hyperLink = document.getElementById("join");
-
-    hyperLink.href += game_id;
-    
+window.onload = () => {    
     loadGamePositions();
 }
 
