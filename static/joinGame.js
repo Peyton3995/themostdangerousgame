@@ -65,70 +65,73 @@ async function loadGamePositions() {
     const playersBody = document.querySelector('#players-table tbody');
     const pointsBody = document.querySelector('#points-table tbody');
 
-    // Fetch player positions
-    fetch(`https://themostdangerousgame.net/positions/${game_id}`)
-        .then(response => response.json())
-        .then(data => {
-            playersBody.innerHTML = '';
+    await Promise.all([
+        // Fetch player positions
+        fetch(`https://themostdangerousgame.net/positions/${game_id}`)
+            .then(response => response.json())
+            .then(data => {
+                playersBody.innerHTML = '';
+                if (data.length === 0) {
+                    playersBody.innerHTML = '<tr><td colspan="4">No player data available.</td></tr>';
+                    return;
+                }
+
+                playerData = data;
+                console.log(data)
+
+                data.forEach(p => {
+                    if(p.user_id !== user_id) {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                        <td>${p.user_id}</td>
+                        <td>${p.team_id}</td>
+                        <td>${p.latitude}</td>
+                        <td>${p.longitude}</td>
+                        <td>${p.timestamp}</td>
+                        <td>${distanceInFeet(user_latitude, user_longitude, p.latitude, p.longitude)}</td>
+                        `;
+                        playersBody.appendChild(row);
+                    }
+                });
+            })
+            .catch(() => {
+                playersBody.innerHTML = '<tr><td colspan="4">Failed to load player data.</td></tr>';
+            }
+        ),
+        // Fetch point locations
+        fetch(`https://themostdangerousgame.net/points/${game_id}`)
+            .then(response => response.json())
+            .then(data => {
+            pointsBody.innerHTML = '';
             if (data.length === 0) {
-                playersBody.innerHTML = '<tr><td colspan="4">No player data available.</td></tr>';
+                pointsBody.innerHTML = '<tr><td colspan="5">No points available.</td></tr>';
                 return;
             }
 
-            playerData = data;
-            console.log(data)
+            gamePoints = data
+            console.log(data);
 
-            data.forEach(p => {
-                if(p.user_id !== user_id) {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                    <td>${p.user_id}</td>
-                    <td>${p.team_id}</td>
-                    <td>${p.latitude}</td>
-                    <td>${p.longitude}</td>
-                    <td>${p.timestamp}</td>
-                    <td>${distanceInFeet(user_latitude, user_longitude, p.latitude, p.longitude)}</td>
-                    `;
-                    playersBody.appendChild(row);
-                }
+            data.forEach(point => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${point.point_id}</td>
+                    <td>${point.latitude}</td>
+                    <td>${point.longitude}</td>
+                    <td>${point.team_id}</td>
+                    <td>${point.defenders}</td>
+                    <td>${point.timestamp}</td>
+                    <td>${distanceInFeet(user_latitude, user_longitude, point.latitude, point.longitude)}</td>
+                `;
+                pointsBody.appendChild(row);
             });
-        })
-        .catch(() => {
-            playersBody.innerHTML = '<tr><td colspan="4">Failed to load player data.</td></tr>';
-        }
-    );
+            })
+            .catch(() => {
+                pointsBody.innerHTML = '<tr><td colspan="5">Failed to load point data.</td></tr>';
+            }
+        )
+    ])
 
-    // Fetch point locations
-    fetch(`https://themostdangerousgame.net/points/${game_id}`)
-        .then(response => response.json())
-        .then(data => {
-        pointsBody.innerHTML = '';
-        if (data.length === 0) {
-            pointsBody.innerHTML = '<tr><td colspan="5">No points available.</td></tr>';
-            return;
-        }
-
-        gamePoints = data
-        console.log(data);
-
-        data.forEach(point => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${point.point_id}</td>
-                <td>${point.latitude}</td>
-                <td>${point.longitude}</td>
-                <td>${point.team_id}</td>
-                <td>${point.defenders}</td>
-                <td>${point.timestamp}</td>
-                <td>${distanceInFeet(user_latitude, user_longitude, point.latitude, point.longitude)}</td>
-            `;
-            pointsBody.appendChild(row);
-        });
-        })
-        .catch(() => {
-            pointsBody.innerHTML = `<tr><td colspan="5">${gamePoints[0].point_id}</td></tr>`;
-        }
-    )
+    findNearestPoint()
 }
 
 async function updateUserPosition(new_lat, new_long) {
