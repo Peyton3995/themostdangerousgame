@@ -130,7 +130,6 @@ async function loadGamePositions() {
             }
         )
     ])
-
     findNearestPoint()
 }
 
@@ -221,6 +220,9 @@ function findNearestPoint() {
 }
 
 function findClosePlayers(point, point_latitude, point_longitude) {
+    // current utc timestamp 
+    const now = new Date();
+
     // find recent players, movement made in the last two hours
     const recentPlayers = playerData.filter(p => {
         const playerTime = new Date(p.timestamp.replace(' ', 'T')); // Convert to ISO format
@@ -281,7 +283,7 @@ function capturingAPoint(closePoint, closePlayers) {
             console.log("Capture blocked — tie between top teams.");
             return;
         } else {
-            updatePoint(1, maxCount, secondCount, topTeam, matchedPoint.point_id)
+            updatePoint(1, maxCount, secondCount, topTeam, matchedPoint)
         }
     }
 }
