@@ -123,7 +123,9 @@ async function loadGamePositions() {
         .catch(() => {
             pointsBody.innerHTML = '<tr><td colspan="5">Failed to load point data.</td></tr>';
         }
-    );
+    ).then(
+        findNearestPoint()
+    )
 }
 
 async function updateUserPosition(new_lat, new_long) {
@@ -139,12 +141,6 @@ async function updateUserPosition(new_lat, new_long) {
     });
 
     console.log(response)
-
-    let nearestPoint = findNearestPoint()
-
-    if(nearestPoint.length > 0) {
-        document.getElementById('test').innerHTML = nearestPoint
-    }
 }
 
 function distanceInFeet(lat1, lon1, lat2, lon2) {
@@ -191,5 +187,8 @@ function findNearestPoint() {
     }
 
     console.log(closestPoint)
-    return closestPoint
+
+    if(closestPoint.length > 0) {
+        document.getElementById('test').innerHTML = closestPoint
+    }
 }
