@@ -283,7 +283,7 @@ function capturingAPoint(closePoint, closePlayers) {
             console.log("Capture blocked — tie between top teams.");
             return;
         } else {
-            updatePoint(1, maxCount, secondCount, topTeam, matchedPoint)
+            updatePoint(1, maxCount, secondCount, topTeam, matchedPoint.point_id)
         }
     }
 }
