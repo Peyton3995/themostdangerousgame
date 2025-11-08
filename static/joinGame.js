@@ -169,7 +169,7 @@ function findNearestPoint() {
     // append distance to each one
     const distanceToPoints = gamePoints.map(d => ({
         ...d,
-        distance: distanceInFeet(latitude, longitude, d.latitude, d.longitude)
+        distance: distanceInFeet(user_latitude, user_longitude, d.latitude, d.longitude)
     }));
     console.log(distanceToPoints)
 
