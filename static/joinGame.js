@@ -188,6 +188,6 @@ function findNearestPoint() {
     console.log(closestPoint)
 
     if(closestPoint.length > 0) {
-        document.getElementById('test').innerHTML = closestPoint.toString()
+        document.getElementById('test').innerHTML = closestPoint[0].user_id;
     }
 }
