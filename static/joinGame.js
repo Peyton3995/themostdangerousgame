@@ -148,7 +148,7 @@ async function updateUserPosition(new_lat, new_long) {
 }
 
 async function updatePoint(captured, defenders, attackers, team_id, point_id){
-    const response = await fetch(`https://themostdangerousgame.net/positions/${game_id}/${point_id}`, {
+    const response = await fetch(`https://themostdangerousgame.net/points/${game_id}/${point_id}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json'
