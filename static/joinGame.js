@@ -105,7 +105,7 @@ async function loadGamePositions() {
 
         gamePoints = data
         console.log(data);
-        
+
         data.forEach(point => {
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -167,6 +167,7 @@ function distanceInFeet(lat1, lon1, lat2, lon2) {
 }
 
 function findNearestPoint() {
+    console.log(gamePoints)
     // append distance to each one
     const distanceToPoints = gamePoints.map(d => ({
         ...d,
