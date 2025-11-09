@@ -310,8 +310,10 @@ function capturingAPoint(closePoint, closePlayers) {
 function updateScores(winningTeam) {
     // get winning team out of teamScores
     let awardedTeam = teamScores.find(team => team.team_id === winningTeam);
+    console.log(awardedTeam)
     // get winning teams current score and bump it by 1
     let awardedPoints = awardedTeam.points++;
+    console.log(awardedPoints)
 
     // put new score
     updateTeamScore(awardedTeam, awardedPoints)
