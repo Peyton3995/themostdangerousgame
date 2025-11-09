@@ -59,7 +59,8 @@ def init_db():
         CREATE TABLE IF NOT EXISTS teams (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             game_id TEXT NOT NULL,
-            team_id TEXT UNIQUE NOT NULL
+            team_id TEXT UNIQUE NOT NULL,
+            points INTEGER NOT NULL DEFAULT 0
         )
     """)
     conn.commit()
@@ -223,7 +224,7 @@ def update_points(game_id, point_id):
     conn.close()
 
     if result.rowcount == 0:
-        return jsonify({"error": "User not found"}), 404
+        return jsonify({"error": "Point not found"}), 404
 
     return jsonify({"message": "Point updated successfully"})
 
@@ -293,7 +294,7 @@ def delete_game(game_id):
 
     return jsonify({"message": f"Deleted game id: '{game_id}'"}), 200
 
-# --- END POINTS FOR TEAM CREATION AND DELETING --- #
+# --- END POINTS FOR TEAM CREATION AND UPDATING AND DELETING --- #
 
 # --- POST: Add a new team ---
 @app.route("/teams", methods=["POST"])
@@ -331,6 +332,28 @@ def get_teams(game_id):
     teams = [dict(row) for row in rows]
     
     return jsonify(teams)
+
+# --- PUT: Update information for a team for a given game
+@app.route("teams/<game_id>/<team_id>", methods=["PUT"])
+def put_team(game_id, team_id):
+    data = request.get_json()
+
+    points = data.get("points")
+    if game_id is None or team_id is None:
+        return jsonify({"error": "Need an existing game and team id"}), 400
+    
+    conn = get_db_connection()
+    result = conn.execute(
+        "UPDATE teams SET points ? WHERE game_id = ? AND team_id & ?", 
+        (points, game_id, team_id)
+    )
+    conn.commit()
+    conn.close()
+
+    if result.rowcount == 0:
+        return jsonify({"message": f"No team found for team_id '{team_id}'"}), 404
+
+    return jsonify({"message": f"Update point(s) for team_id '{team_id}'"}), 200
 
 # --- DELETE: Delete all positions for a given team_id ---
 @app.route("/teams/<team_id>", methods=["DELETE"])
