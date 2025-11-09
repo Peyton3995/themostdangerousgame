@@ -334,7 +334,7 @@ def get_teams(game_id):
     return jsonify(teams)
 
 # --- PUT: Update information for a team for a given game
-@app.route("teams/<game_id>/<team_id>", methods=["PUT"])
+@app.route("/teams/<game_id>/<team_id>", methods=["PUT"])
 def put_team(game_id, team_id):
     data = request.get_json()
 
@@ -344,7 +344,7 @@ def put_team(game_id, team_id):
     
     conn = get_db_connection()
     result = conn.execute(
-        "UPDATE teams SET points ? WHERE game_id = ? AND team_id & ?", 
+        "UPDATE teams SET points = ? WHERE game_id = ? AND team_id = ?", 
         (points, game_id, team_id)
     )
     conn.commit()

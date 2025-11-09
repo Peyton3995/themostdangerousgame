@@ -7,6 +7,7 @@ let user_longitude;
 
 let gamePoints;
 let playerData;
+let teamScores;
 
 const displayLocation = document.getElementById("local")
 
@@ -128,7 +129,17 @@ async function loadGamePositions() {
             .catch(() => {
                 pointsBody.innerHTML = '<tr><td colspan="5">Failed to load point data.</td></tr>';
             }
-        )
+        ),
+
+        // Get teams for given game
+        fetch(`https://themostdangerousgame.net/teams/${game_id}`)
+            .then(response => response.json())
+            .then(data => {
+                teamScores = data
+            })
+            .catch(() => {
+                console.log("failed to get team scores")
+            })
     ])
     findNearestPoint()
 }
@@ -165,6 +176,20 @@ async function updatePoint(captured, defenders, attackers, team_id, point_id){
     })
 
     console.log(response) 
+}
+
+async function updateTeamScore(team_id, score){
+    const response = await fetch(`https://themostdangerousgame.net/teams/${team_id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type':'application/json'
+        },
+            body: JSON.stringify({
+                points: score
+            })
+    })
+
+    console.log(response)
 }
 
 function distanceInFeet(lat1, lon1, lat2, lon2) {
@@ -278,7 +303,16 @@ function capturingAPoint(closePoint, closePlayers) {
     if((matchedPoint.defenders < winningCount) && (winningCount !== secondCount)){
         console.log("updating point")
         updatePoint(1, winningCount, secondCount, winningTeam, matchedPoint.point_id)
+        updateScores(winningTeam)
     }
+}
 
+function updateScores(winningTeam) {
+    // get winning team out of teamScores
+    let awardedTeam = teamScores.find(team => team.team_id === winningTeam);
+    // get winning teams current score and bump it by 1
+    let awardedPoints = awardedTeam.points++;
 
+    // put new score
+    updateTeamScore(awardedTeam, awardedPoints)
 }
