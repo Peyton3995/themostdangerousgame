@@ -14,6 +14,7 @@ async function loadGamePositions() {
 
     const playersBody = document.querySelector('#players-table tbody');
     const pointsBody = document.querySelector('#points-table tbody');
+    const teamsBody = document.querySelect('#teams-table tbody');
 
     // Fetch player positions
     fetch(`https://themostdangerousgame.net/positions/${game_id}`)
@@ -66,6 +67,28 @@ async function loadGamePositions() {
         })
         .catch(() => {
             pointsBody.innerHTML = '<tr><td colspan="5">Failed to load point data.</td></tr>';
+        }
+    );
+
+    // Fetch team locations
+    fetch(`https://themostdangerousgame.net/teams/${game_id}`)
+        .then(response => response.json())
+        .then(data => {
+        teamsBody.innerHTML = '';
+        if (data.length === 0) {
+            teamsBody.innerHTML = '<tr><td colspan="5">No points available.</td></tr>'
+            return;
+        }
+        data.forEach(team => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${team.team_id}</td>
+                <td>${team.points}</td>
+            `;
+        })
+        })
+        .catch(() => {
+            teamsBody.innerHTML = '<tr><td colspan="5">Failed to load team data.</td></tr>'
         }
     );
 }
