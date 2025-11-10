@@ -85,6 +85,7 @@ async function loadGamePositions() {
                 <td>${team.team_id}</td>
                 <td>${team.points}</td>
             `;
+            teamsBody.appendChild(row)
         })
         })
         .catch(() => {
