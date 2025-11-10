@@ -177,6 +177,7 @@ async function updatePoint(captured, defenders, attackers, team_id, point_id){
     })
 
     console.log(response) 
+    updateScores(team_id)
 }
 
 async function updateTeamScore(team_id, score){
@@ -303,10 +304,7 @@ async function capturingAPoint(closePoint, closePlayers) {
 
     if((matchedPoint.defenders < winningCount) && (winningCount !== secondCount)){
         console.log("updating point")
-        await Promise.all([
-            updatePoint(1, winningCount, secondCount, winningTeam, matchedPoint.point_id)
-        ])
-        updateScores(winningTeam)
+        updatePoint(1, winningCount, secondCount, winningTeam, matchedPoint.point_id)
     }
 }
 
