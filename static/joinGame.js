@@ -181,7 +181,7 @@ async function updatePoint(captured, defenders, attackers, team_id, point_id){
 }
 
 async function updateTeamScore(team_id, score){
-    const response = await fetch(`https://themostdangerousgame.net/teams/${team_id}`, {
+    const response = await fetch(`https://themostdangerousgame.net/teams/${game_id}/${team_id}`, {
         method: 'PUT',
         headers: {
             'Content-Type':'application/json'
@@ -312,11 +312,10 @@ function updateScores(winningTeam) {
     console.log(winningTeam)
     // get winning team out of teamScores
     let awardedTeam = teamScores.find(team => team.team_id === winningTeam);
-    console.log(awardedTeam)
+
     // get winning teams current score and bump it by 1
-    let awardedPoints = awardedTeam.points++;
-    console.log(awardedPoints)
+    let awardedPoints = awardedTeam.points + 1;
 
     // put new score
-    updateTeamScore(awardedTeam, awardedPoints)
+    updateTeamScore(winningTeam, awardedPoints)
 }
