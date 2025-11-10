@@ -136,6 +136,7 @@ async function loadGamePositions() {
             .then(response => response.json())
             .then(data => {
                 teamScores = data
+                console.log(teamScores)
             })
             .catch(() => {
                 console.log("failed to get team scores")
@@ -271,7 +272,7 @@ function findClosePlayers(point, point_latitude, point_longitude) {
     capturingAPoint(point, within100FeetAndTwoHoursAgo)
 }
 
-function capturingAPoint(closePoint, closePlayers) {
+async function capturingAPoint(closePoint, closePlayers) {
     const matchedPoint = gamePoints.find(point => point.point_id === closePoint);
     console.log(matchedPoint)
 
@@ -302,12 +303,15 @@ function capturingAPoint(closePoint, closePlayers) {
 
     if((matchedPoint.defenders < winningCount) && (winningCount !== secondCount)){
         console.log("updating point")
-        updatePoint(1, winningCount, secondCount, winningTeam, matchedPoint.point_id)
+        await Promise.all([
+            updatePoint(1, winningCount, secondCount, winningTeam, matchedPoint.point_id)
+        ])
         updateScores(winningTeam)
     }
 }
 
 function updateScores(winningTeam) {
+    console.log(winningTeam)
     // get winning team out of teamScores
     let awardedTeam = teamScores.find(team => team.team_id === winningTeam);
     console.log(awardedTeam)
