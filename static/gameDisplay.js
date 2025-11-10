@@ -14,7 +14,7 @@ async function loadGamePositions() {
 
     const playersBody = document.querySelector('#players-table tbody');
     const pointsBody = document.querySelector('#points-table tbody');
-    const teamsBody = document.querySelect('#teams-table tbody');
+    const teamsBody = document.querySelector('#teams-table tbody');
 
     // Fetch player positions
     fetch(`https://themostdangerousgame.net/positions/${game_id}`)
