@@ -86,8 +86,6 @@ async function loadGamePositions() {
                         row.innerHTML = `
                         <td>${p.user_id}</td>
                         <td>${p.team_id}</td>
-                        <td>${p.latitude}</td>
-                        <td>${p.longitude}</td>
                         <td>${p.timestamp}</td>
                         <td>${distanceInFeet(user_latitude, user_longitude, p.latitude, p.longitude)}</td>
                         `;

@@ -1,6 +1,9 @@
 from flask import Flask, request, jsonify, render_template
+from apscheduler.schedulers.background import BackgroundScheduler
 from flask_cors import CORS
 import sqlite3
+
+import time
 
 app = Flask(__name__)
 CORS(app)
@@ -368,6 +371,21 @@ def delete_team(team_id):
 
     return jsonify({"message": f"Deleted team id: '{team_id}'"}), 200
 
+
+# --- Automated Jobs ---
+
+def passive_score():
+    conn = get_db_connection()
+    rows = conn.execute("SELECT * FROM games").fetchall()
+    conn.commit()
+    conn.close()
+    games = [dict(row) for row in rows]
+
+
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(passive_score, 'interval', seconds=10)
+scheduler.start()
 
 if __name__ == "__main__":
     init_db()
