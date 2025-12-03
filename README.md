@@ -23,4 +23,5 @@ During this attempt, the site checks to see who else is within a hundred feet of
 checks the team for each closeby user. The team with the most people near a point capture it and score \
 a point. To flip a point, a team needs to come in with more users then it was previously captured with. 
 Once this happens the point flips, and the attacking team gains a point.
+
 --- 
