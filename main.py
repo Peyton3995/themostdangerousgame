@@ -3,10 +3,53 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask_cors import CORS
 import sqlite3
 
+from flask_login import (
+    LoginManager,
+    UserMixin,
+    login_user,
+    logout_user,
+    login_required,
+    current_user
+)
+from werkzeug.security import generate_password_hash, check_password_hash
+
 import time
 
+class User(UserMixin):
+    def __init__(self, id, username, password_hash):
+        self.id = id
+        self.username = username
+        self.password_hash = password_hash
+
+    @staticmethod
+    def from_row(row):
+        return User(
+            id=row["id"],
+            username=row["username"],
+            password_hash=row["password_hash"]
+        )
+
 app = Flask(__name__)
+
+app.secret_key = "change-me"
+
 CORS(app)
+
+login_manager = LoginManager()   
+login_manager.login_view = "login"
+
+def load_user(user_id):
+    conn = get_db_connection()
+    row = conn.execute(
+        "SELECT * FROM users WHERE id = ?",
+        (user_id,)
+    ).fetchone()
+    conn.close()
+
+    return User.from_row(row) if row else None
+login_manager.user_loader(load_user)
+
+login_manager.init_app(app)
 
 DATABASE = "game.db"
 
@@ -16,7 +59,6 @@ def get_db_connection():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row  # return dict-like rows
     return conn
-
 
 # --- Initialize the database ---
 def init_db():
@@ -64,6 +106,15 @@ def init_db():
             game_id TEXT NOT NULL,
             team_id TEXT UNIQUE NOT NULL,
             points INTEGER NOT NULL DEFAULT 0
+        )
+    """)
+    conn.commit()
+    conn.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
     conn.commit()
@@ -371,6 +422,75 @@ def delete_team(team_id):
 
     return jsonify({"message": f"Deleted team id: '{team_id}'"}), 200
 
+# --- My attempt at adding user authentication
+
+# --- creating a user
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+
+    if not username or not password:
+        return jsonify({"error": "username and password required"}), 400
+
+    password_hash = generate_password_hash(password)
+
+    try:
+        conn = get_db_connection()
+        conn.execute(
+            "INSERT INTO users (username, password_hash) VALUES (?, ?)",
+            (username, password_hash)
+        )
+        conn.commit()
+
+        row = conn.execute(
+            "SELECT * FROM users WHERE username = ?",
+            (username,)
+        ).fetchone()
+        conn.close()
+
+        login_user(User.from_row(row))
+        return jsonify({"message": "User created"}), 201
+
+    except sqlite3.IntegrityError:
+        return jsonify({"error": "Username already exists"}), 409
+
+# --- login as an existing user
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+
+    conn = get_db_connection()
+    row = conn.execute(
+        "SELECT * FROM users WHERE username = ?",
+        (username,)
+    ).fetchone()
+    conn.close()
+
+    if row and check_password_hash(row["password_hash"], password):
+        login_user(User.from_row(row))
+        return jsonify({"message": "Logged in"})
+
+    return jsonify({"error": "Invalid credentials"}), 401
+
+# --- logging out
+@app.route("/logout", methods=["POST"])
+@login_required
+def logout():
+    logout_user()
+    return jsonify({"message": "Logged out"})
+
+@app.route("/auth/status")
+def auth_status():
+    if current_user.is_authenticated:
+        return jsonify({
+            "authenticated": True,
+            "username": current_user.username
+        })
+    return jsonify({"authenticated": False})
 
 # --- Automated Jobs ---
 
