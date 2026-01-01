@@ -1,41 +1,7 @@
 window.onload = () => {
     displaySelectableGames()
     getLocation()
-}
-
-// store latitude and longitude of user here for all post functions to use
-let latitude;
-let longitude;
-
-const displayLocation = document.getElementById("local")
-
-async function submitGame() {
-    const game_id = document.getElementById('game_id').value.trim();
-
-    if (!game_id || !latitude || !longitude) {
-        document.getElementById('response').innerText = "All fields must be filled..."
-        return;
-    }
-
-    if (isNaN(latitude) || isNaN(longitude)) {
-        document.getElementById('response').innerText = "Latitude and longitude must be numbers..."
-        return;
-    }
-
-    const response = await fetch('https://themostdangerousgame.net/games', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-            body: JSON.stringify({
-            game_id: game_id,
-            latitude: latitude,
-            longitude: longitude
-        })
-    });
-
-    const result = await response.json();
-    document.getElementById('response').innerText = JSON.stringify(result);
+    checkAuthStatus();
 }
 
 async function submitPoint() {
@@ -255,3 +221,28 @@ function error(error) {
             break;
     }
 }
+
+async function checkAuthStatus() {
+    const res = await fetch("/auth/status", {
+        credentials: "include"
+    });
+
+    if (!res.ok) return;
+
+    const data = await res.json();
+
+    if (data.authenticated) {
+        document.getElementById("user-display").innerText =
+            `Logged in as ${data.username}`;
+        document.getElementById("user-display").style.display = "inline";
+        document.getElementById("logout-btn").style.display = "inline";
+    }
+}
+
+document.getElementById("logout-btn").onclick = async () => {
+    await fetch("/logout", {
+        method: "POST",
+        credentials: "include"
+    });
+    window.location.href = "/";
+};

@@ -93,9 +93,8 @@ def init_db():
     conn.execute("""
         CREATE TABLE IF NOT EXISTS games (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            game_id TEXT UNIQUE NOT NULL,
-            latitude REAL NOT NULL,
-            longitude REAL NOT NULL,
+            creator_id INTEGER NOT NULL,
+            name TEXT UNIQUE NOT NULL,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -105,7 +104,7 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             game_id TEXT NOT NULL,
             team_id TEXT UNIQUE NOT NULL,
-            points INTEGER NOT NULL DEFAULT 0
+            score INTEGER NOT NULL DEFAULT 0
         )
     """)
     conn.commit()
@@ -125,6 +124,7 @@ def index():
     return render_template("index.html")
 
 @app.route('/add_game')
+@login_required
 def create_game():
     return render_template('add_game.html')
 
@@ -302,18 +302,14 @@ def delete_points_by_game(game_id):
 def add_game():
     data = request.get_json()
 
-    game_id = data.get("game_id")
-    latitude = data.get("latitude")
-    longitude = data.get("longitude")
-
-    if latitude is None or longitude is None or game_id is None:
-        return jsonify({"error": "game_id, latitude, and longitude are required"}), 400
+    creator_id = current_user.id
+    name = data.get("name")
 
     try:
         conn = get_db_connection()
         conn.execute(
-            "INSERT INTO games (game_id, latitude, longitude) VALUES (?, ?, ?)",
-            (game_id, latitude, longitude),
+            "INSERT INTO games (creator_id, name) VALUES (?, ?)",
+            (creator_id, name),
         )
         conn.commit()
         conn.close()
@@ -335,11 +331,11 @@ def get_games():
     
     return jsonify(positions)
 
-# --- DELETE: Delete all positions for a given game_id ---
+# --- DELETE: Delete game by name---
 @app.route("/games/<game_id>", methods=["DELETE"])
 def delete_game(game_id):
     conn = get_db_connection()
-    result = conn.execute("DELETE FROM games WHERE game_id = ?", (game_id,))
+    result = conn.execute("DELETE FROM games WHERE name = ?", (game_id,))
     conn.commit()
     conn.close()
 
@@ -388,6 +384,7 @@ def get_teams(game_id):
     return jsonify(teams)
 
 # --- PUT: Update information for a team for a given game
+# Used for updating score of teams
 @app.route("/teams/<game_id>/<team_id>", methods=["PUT"])
 def put_team(game_id, team_id):
     data = request.get_json()
@@ -398,7 +395,7 @@ def put_team(game_id, team_id):
     
     conn = get_db_connection()
     result = conn.execute(
-        "UPDATE teams SET points = ? WHERE game_id = ? AND team_id = ?", 
+        "UPDATE teams SET score = ? WHERE game_id = ? AND team_id = ?", 
         (points, game_id, team_id)
     )
     conn.commit()

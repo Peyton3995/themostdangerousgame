@@ -44,8 +44,6 @@
             <thead>
                 <tr>
                     <th>Game</th>
-                    <th>Latitude</th>
-                    <th>Longitude</th>
                     <th>Start Date</th>
                     <th>-- * --</th>
                 </tr>
@@ -64,8 +62,14 @@
     <script src="{{ url_for('static', filename='landingPage.js') }}"></script>
 </body>
 <footer>
-    <div>
-        <h2><a href="/add_game">Begin a game...</a></h2>
+    <div id="create-game" style="display: none">
+        <h3>Begin a game...</h3>
+        <form>
+            <label for="game_id">Game Name:</label>
+            <input type="text" id="name" name="Name" required>
+            <button type="button" onclick="submitGame()">Submit</button>
+        </form>
+        <p id="response"></p>
     </div>
     <span>
         <b><u>VISITOR COUNTER</u></b>

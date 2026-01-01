@@ -29,13 +29,7 @@ async function getGames() {
                             const row = document.createElement('tr');
 
                             const idCell = document.createElement('td');
-                            idCell.textContent = game.game_id;
-
-                            const latCell = document.createElement('td');
-                            latCell.textContent = game.latitude;
-
-                            const lonCell = document.createElement('td');
-                            lonCell.textContent = game.longitude;
+                            idCell.textContent = game.name;
 
                             const dateCell = document.createElement('td');
                             dateCell.textContent = game.timestamp;
@@ -47,8 +41,6 @@ async function getGames() {
                             joinCell.appendChild(link);
 
                             row.appendChild(idCell);
-                            row.appendChild(latCell);
-                            row.appendChild(lonCell);
                             row.appendChild(dateCell);
                             row.appendChild(joinCell);
 
@@ -61,6 +53,28 @@ async function getGames() {
                         tbody.innerHTML = '<tr><td colspan="5">Failed to load games.</td></tr>';
                     });
             };
+
+async function submitGame() {
+    const name = document.getElementById('name').value.trim();
+
+    if (!name ) {
+        document.getElementById('response').innerText = "All fields must be filled..."
+        return;
+    }
+
+    const response = await fetch('/games', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+            body: JSON.stringify({
+            name: name
+        })
+    });
+
+    const result = await response.json();
+    document.getElementById('response').innerText = JSON.stringify(result);
+}
 
 let authMode = "login";
 
@@ -127,5 +141,7 @@ async function checkAuth() {
         document.getElementById("logout-btn").style.display = "inline";
         document.getElementById("login-btn").style.display = "none";
         document.getElementById("register-btn").style.display = "none";
+
+        document.getElementById("create-game").style.display = "block";
     }
 }
