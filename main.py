@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, abort
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask_cors import CORS
 import sqlite3
@@ -63,15 +63,19 @@ def get_db_connection():
 # --- Initialize the database ---
 def init_db():
     conn = get_db_connection()
+
+    conn.execute("PRAGMA foreign_keys = ON")
+
     conn.execute("""
         CREATE TABLE IF NOT EXISTS positions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id TEXT UNIQUE NOT NULL,
             team_id TEXT NOT NULL,
-            game_id TEXT NOT NULL,
+            game_id INTEGER NOT NULL,
             latitude REAL NOT NULL,
             longitude REAL NOT NULL,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(game_id) REFERENCES games(id)
         )
     """)
     conn.commit()
@@ -79,14 +83,15 @@ def init_db():
         CREATE TABLE IF NOT EXISTS points (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             point_id TEXT UNIQUE NOT NULL,
-            game_id TEXT NOT NULL,
+            game_id INTEGER NOT NULL,
             latitude REAL NOT NULL,
             longitude REAL NOT NULL,
             captured INTEGER NOT NULL DEFAULT 0,
             defenders INTEGER NOT NULL DEFAULT 0,
             attackers INTEGER NOT NULL DEFAULT 0,
             team_id TEXT DEFAULT 'NOBODY',
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(game_id) REFERENCES games(id)
         )
     """)
     conn.commit()
@@ -102,9 +107,10 @@ def init_db():
     conn.execute("""
         CREATE TABLE IF NOT EXISTS teams (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            game_id TEXT NOT NULL,
+            game_id INTEGER NOT NULL,
             team_id TEXT UNIQUE NOT NULL,
-            score INTEGER NOT NULL DEFAULT 0
+            score INTEGER NOT NULL DEFAULT 0,
+            FOREIGN KEY(game_id) REFERENCES games(id)
         )
     """)
     conn.commit()
@@ -119,14 +125,26 @@ def init_db():
     conn.commit()
     conn.close()
 
+# --- Routes for rendering templates
 @app.route("/")
 def index():
     return render_template("index.html")
 
-@app.route('/add_game')
+@app.route('/add_game/<game_id>')
 @login_required
-def create_game():
-    return render_template('add_game.html')
+def create_game(game_id):
+    # get the user ID for the game we are trying to edit
+    conn = get_db_connection()
+    game = conn.execute(
+        "SELECT id, name, creator_id FROM games WHERE id = ?",
+        (game_id,)
+    ).fetchone()
+    conn.close()
+
+    if game["creator_id"] != current_user.id:
+        abort(403)
+    else:
+        return render_template('add_game.html')
 
 @app.route('/display_game/<game_id>')
 def display_game(game_id):
@@ -283,17 +301,27 @@ def update_points(game_id, point_id):
     return jsonify({"message": "Point updated successfully"})
 
 # --- DELETE: Delete a given point ---
-@app.route("/points/<game_id>", methods=["DELETE"])
-def delete_points_by_game(game_id):
+@app.route("/points/<point_id>", methods=["DELETE"])
+@login_required
+def delete_point(point_id):
     conn = get_db_connection()
-    result = conn.execute("DELETE FROM positions WHERE game_id = ?", (game_id,))
+
+    row = conn.execute("""
+        SELECT g.creator_id
+        FROM points p
+        JOIN games g ON p.game_id = g.id
+        WHERE p.id = ?
+    """, (point_id,)).fetchone()
+
+    if not row or row["creator_id"] != current_user.id:
+        conn.close()
+        return jsonify({"error": "Forbidden"}), 403
+
+    conn.execute("DELETE FROM points WHERE id = ?", (point_id,))
     conn.commit()
     conn.close()
 
-    if result.rowcount == 0:
-        return jsonify({"message": f"No positions found for game_id '{game_id}'"}), 404
-
-    return jsonify({"message": f"Deleted position(s) for game_id '{game_id}'"}), 200
+    return jsonify({"message": "Point deleted"}), 200
 
 # --- End Points for Creating a Game
 
@@ -302,34 +330,66 @@ def delete_points_by_game(game_id):
 def add_game():
     data = request.get_json()
 
-    creator_id = current_user.id
     name = data.get("name")
 
     try:
         conn = get_db_connection()
-        conn.execute(
-            "INSERT INTO games (creator_id, name) VALUES (?, ?)",
-            (creator_id, name),
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO games (name, creator_id)
+            VALUES (?, ?)
+            """,
+            (name, current_user.id),
         )
+
         conn.commit()
+        game_id = cursor.lastrowid
         conn.close()
-        return jsonify({"message": "Game added successfully"}), 201
+        return jsonify({
+                "message": "Game added successfully",
+                "id":game_id
+            }), 201
     except sqlite3.IntegrityError:
         conn.commit()
         conn.close()
         return jsonify({"error": "Game already exists. Use a unique name"}), 409
 
 
-# --- GET: Retrieve all positions for given game---
+# --- GET: Get a list of all games ---
 @app.route("/games", methods=["GET"])
 def get_games():
     conn = get_db_connection()
     rows = conn.execute("SELECT * FROM games").fetchall()
     conn.commit()
     conn.close()
-    positions = [dict(row) for row in rows]
+    games = [dict(row) for row in rows]
     
-    return jsonify(positions)
+    return jsonify(games)
+
+@app.route("/games/<game_id>", methods=["GET"])
+def get_game(game_id):
+    conn = get_db_connection()
+    game = conn.execute(
+        """
+        SELECT id, name, creator_id, timestamp
+        FROM games
+        WHERE id = ?
+        """,
+        (game_id,)
+    ).fetchone()
+    conn.commit()
+    conn.close()
+
+    if game is None:
+        return jsonify({"error": "Game not found"}), 404
+
+    return jsonify({
+        "id": game["id"],
+        "name": game["name"],
+        "creator_id": game["creator_id"],
+        "timestamp": game["timestamp"]
+    })
 
 # --- DELETE: Delete game by name---
 @app.route("/games/<game_id>", methods=["DELETE"])

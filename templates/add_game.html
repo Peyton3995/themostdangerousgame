@@ -25,29 +25,14 @@
     <div style="margin-left: auto; margin-right: auto; text-align: center">
         <h2 id="top">Welcome to...</h2>
         <h1><b>THE MOST DANGEROUS GAME</b></h1>
+        <h2 style="color: red;" id="game-title">Loading...</h2>
     </div>
 
     <div style="margin-left: auto; margin-right: auto; text-align: center">
-        <h3>Your Current Position:</h3>
-        <h3 id="local"></h3>
         <form>
-            <h3>Create a game...</h3>
-            <label for="game_id">Game ID:</label>
-            <input type="text" id="game_id" name="game_id" required>
+            <h3>Establish points...</h3>
 
-            <button type="button" onclick="submitGame()">Submit</button>
-            <h3><i>On successfull submission, reload page to add points, teams, & users...</i></h3>
-        </form>
-
-        <form>
-            <h3>Establish points (for an existing game)...</h3>
-
-            <label for="games_points">Game ID:</label>
-            <select id="games_points">
-                <option value="">Loading games...</option>
-            </select>
-
-            <label for="point_id">Point ID:</label>
+            <label for="point_id">Point Name:</label>
             <input type="text" id="point_id" name="point_id" required>
 
             <label for="point_lat">Latitude:</label>
@@ -56,40 +41,60 @@
             <label for="point_long">Longitude:</label>
             <input type="text" id="point_long" name="point_long" required>
 
+            <button type="button" onclick="getLocation()">Use Current Position</button>
             <button type="button" onclick="submitPoint()">Submit</button>
         </form>
 
         <form>
-            <h3>Create teams (for an existing game)...</h3>
-            <label for="games_teams">Game ID:</label>
-            <select id="games_teams">
-                <option value="">Loading games...</option>
-            </select>
+            <h3>Create teams</h3>
 
-            <label for="team_id">Team ID:</label>
+            <label for="team_id">Team Name</label>
             <input type="text" id="team_id" name="team_id" required>
 
             <button type="button" onclick="submitTeam()">Submit</button>
         </form>
 
-        <form>
-            <h3>Create users (for an existing game)...</h3>
-            <label for="games_users">Game ID:</label>
-            <select id="games_users" onchange="displaySelectableTeams(this.value)"
-                onload="displaySelectableTeams(this.value)">
-                <option value="">Loading games...</option>
-            </select>
+        <div style="display:flex; justify-content:space-around; margin-top:40px;">
 
-            <label for="user_teams">Team ID:</label>
-            <select id="user_teams">
-                <option value="">Select a game...</option>
-            </select>
+            <!-- TEAMS TABLE -->
+            <div>
+                <h3>Existing Teams</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Team Name</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teams-body">
+                        <tr>
+                            <td colspan="2">Loading teams...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-            <label for="user_id">User ID:</label>
-            <input type="text" id="user_id" name="user_id" required>
+            <!-- POINTS TABLE -->
+            <div>
+                <h3>Existing Points</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Latitude</th>
+                            <th>Longitude</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="points-body">
+                        <tr>
+                            <td colspan="4">Loading points...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-            <button type="button" onclick="submitUser()">Submit</button>
-        </form>
+        </div>
 
         <p id="response"></p>
     </div>

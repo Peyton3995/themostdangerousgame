@@ -1,17 +1,34 @@
-window.onload = () => {
-    displaySelectableGames()
-    getLocation()
-    checkAuthStatus();
+let game_id
+
+document.addEventListener("DOMContentLoaded", () => {
+    const pathParts = window.location.pathname.split('/');
+    game_id = pathParts[pathParts.length - 1];
+
+    getGameById(game_id)
+    checkAuthStatus()
+    loadPoints()
+    loadTeams()
+});
+
+async function getGameById(game_id) {
+    const res = await fetch(`/games/${game_id}`);
+
+    if (!res.ok) {
+        window.location.href = `/`;
+        return
+    }
+
+    const game = await res.json();
+    document.getElementById("game-title").innerText = "You're editing " + game.name;
 }
 
 async function submitPoint() {
     const point_id = document.getElementById('point_id').value.trim()
-    const game_id = document.getElementById('games_points').value;
     const point_latitude = document.getElementById('point_lat').value.trim()
     const point_longitude = document.getElementById('point_long').value.trim()
 
 
-    if (!game_id || !point_id || !point_latitude || !point_longitude) {
+    if (!point_id || !point_latitude || !point_longitude) {
         document.getElementById('response').innerText = "All fields must be filled..."
         return;
     }
@@ -21,7 +38,7 @@ async function submitPoint() {
         return;
     }
 
-    const response = await fetch('https://themostdangerousgame.net/points', {
+    const response = await fetch('/points', {
         method: 'POST',
         headers: {
                 'Content-Type': 'application/json'
@@ -35,19 +52,19 @@ async function submitPoint() {
     });
 
     const result = await response.json();
+    loadPoints()
     document.getElementById('response').innerText = JSON.stringify(result);
 }
 
 async function submitTeam() {
     const team_id = document.getElementById('team_id').value.trim()
-    const game_id = document.getElementById('games_teams').value;
 
     if (!game_id || !team_id) {
         document.getElementById('response').innerText = "All fields must be filled..."
         return;
     }
 
-    const response = await fetch('https://themostdangerousgame.net/teams', {
+    const response = await fetch('/teams', {
         method: 'POST',
         headers: {
                 'Content-Type': 'application/json'
@@ -59,139 +76,91 @@ async function submitTeam() {
     });
 
     const result = await response.json();
+    loadTeams();
     document.getElementById('response').innerText = JSON.stringify(result);
 }
 
-async function submitUser() {
-    const user_id = document.getElementById('user_id').value.trim()
-    const team_id = document.getElementById('user_teams').value;
-    const game_id = document.getElementById('games_users').value;
+async function loadTeams() {
+    const res = await fetch(`/teams/${game_id}`);
+    const teams = await res.json();
 
-    const user_latitude = latitude;
-    const user_longitude = longitude;
+    const tbody = document.getElementById("teams-body");
+    tbody.innerHTML = "";
 
-    if (!game_id || !team_id || !user_id) {
-        document.getElementById('response').innerText = "All fields must be filled..."
+    if (teams.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='2'>No teams yet</td></tr>";
         return;
     }
 
-    const response = await fetch('https://themostdangerousgame.net/positions', {
-        method: 'POST',
-        headers: {
-                'Content-Type': 'application/json'
-        },
-            body: JSON.stringify({
-            user_id: user_id,
-            team_id: team_id,
-            game_id: game_id,
-            latitude: user_latitude,
-            longitude: user_longitude
-        })
-    });
+    teams.forEach(team => {
+        const row = document.createElement("tr");
 
-    const result = await response.json();
-    document.getElementById('response').innerText = JSON.stringify(result);
-}
+        const nameCell = document.createElement("td");
+        nameCell.innerText = team.team_id;
 
-async function displaySelectableGames() {
-    fetch('https://themostdangerousgame.net/games')
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then(data => {
-        const dropdown_points = document.getElementById('games_points');
-        dropdown_points.innerHTML = '';
-        // create placeholder for first value of dropdown
-        const option_points = document.createElement('option');
-        option_points.value = "";
-        option_points.textContent = "-select-";
-        dropdown_points.prepend(option_points); 
+        const actionCell = document.createElement("td");
+        const delBtn = document.createElement("button");
+        delBtn.innerText = "Delete";
+        delBtn.onclick = () => deleteTeam(team.team_id);
 
-        data.forEach(game => {
-            const option = document.createElement('option');
-            option.value = game.game_id;
-            option.textContent = game.game_id;
-            dropdown_points.appendChild(option);
-        });
+        actionCell.appendChild(delBtn);
 
-        const dropdown_teams = document.getElementById('games_teams');
-        dropdown_teams.innerHTML = '';
-        const option_teams = document.createElement('option');
-        option_teams.value = "";
-        option_teams.textContent = "-select-";
-        dropdown_teams.prepend(option_teams); 
-        data.forEach(game => {
-            const option = document.createElement('option');
-            option.value = game.game_id;
-            option.textContent = game.game_id;
-            dropdown_teams.appendChild(option);
-        });
-
-        const dropdown_users = document.getElementById('games_users');
-        dropdown_users.innerHTML = '';
-        const option_users = document.createElement('option');
-        option_users.value = "";
-        option_users.textContent = "-select-";
-        dropdown_users.prepend(option_users); 
-        data.forEach(game => {
-            const option = document.createElement('option');
-            option.value = game.game_id;
-            option.textContent = game.game_id;
-            dropdown_users.appendChild(option);
-        });
-    })
-    .catch(error => {
-        console.error('Error fetching games:', error);
-        const dropdown_points = document.getElementById('games_points');
-        const dropdown_teams = document.getElementById('games_teams');
-        const dropdown_users = document.getElementById("games_users")
-        dropdown_points.innerHTML = '<option>Error loading games</option>';
-        dropdown_teams.innerHTML = '<option>Error loading games</option>';
-        dropdown_users.innerHTML = '<option>Error loading games</option>';
+        row.appendChild(nameCell);
+        row.appendChild(actionCell);
+        tbody.appendChild(row);
     });
 }
 
-async function displaySelectableTeams(game) {
+async function deleteTeam(team_id) {
+    if (!confirm(`Delete team "${team_id}"?`)) return;
 
-    // clear out the dropdown before each call
-    document.getElementById("user_teams").innerHTML = "";
+    await fetch(`/teams/${team_id}`, {
+        method: "DELETE"
+    });
 
-    fetch(`https://themostdangerousgame.net/teams/${game}`)
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then(data => {
-        const dropdown_users = document.getElementById('user_teams');
-        dropdown_users.innerHTML = '';
-        data.forEach(game => {
-            const option = document.createElement('option');
-            option.value = game.team_id;
-            option.textContent = game.team_id;
-            dropdown_users.appendChild(option);
-        });
-        const option_teams = document.createElement('option');
-        option_teams.value = "";
-        option_teams.textContent = "-select-";
-        dropdown_users.prepend(option_teams); 
-    })
-    .catch(error => {
-        console.error('Error fetching games:', error);
-        const dropdown_users = document.getElementById("user_teams")
-        dropdown_users.innerHTML = '<option>Error loading games</option>';
+    loadTeams();
+}
+
+async function loadPoints() {
+    const res = await fetch(`/points/${game_id}`);
+    const points = await res.json();
+
+    const tbody = document.getElementById("points-body");
+    tbody.innerHTML = "";
+
+    if (points.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='4'>No points yet</td></tr>";
+        return;
+    }
+
+    points.forEach(point => {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>${point.point_id}</td>
+            <td>${point.latitude}</td>
+            <td>${point.longitude}</td>
+            <td>
+                <button onclick="deletePoint(${point.id})">Delete</button>
+            </td>
+        `;
+
+        tbody.appendChild(row);
     });
 }
 
+async function deletePoint(point_id) {
+    if (!confirm(`Are you sure you want to delete this point?`)) return;
+
+    await fetch(`/points/${point_id}`, {
+        method: "DELETE"
+    });
+
+    loadPoints();
+}
 
 async function getLocation() {
     if (navigator.geolocation) {
-        console.log("estimating user position...")
-        displayLocation.innerHTML = 'Latitude: YY.yyyyyy --- Longitude: XX.xxxxxx'
         navigator.geolocation.getCurrentPosition(success, error);
     } else { 
         console.log("Geolocation is not supported by this browser.");
@@ -199,10 +168,8 @@ async function getLocation() {
 }
     
 async function success(position) {
-    latitude = position.coords.latitude;
-    longitude = position.coords.longitude;
-    displayLocation.innerText = `Latitude: ${latitude} --- Longitude: ${longitude}`;
-    console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
+    document.getElementById('point_lat').value = position.coords.latitude
+    document.getElementById('point_long').value = position.coords.longitude
 }
 
 function error(error) {
