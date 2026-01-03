@@ -35,7 +35,7 @@ async function getGames() {
 
                             const joinCell = document.createElement('td');
                             const link = document.createElement('a');
-                            link.href = `/display_game/${game.game_id}`;
+                            link.href = `/display_game/${game.id}`;
                             link.textContent = 'View';
                             joinCell.appendChild(link);
 

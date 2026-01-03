@@ -10,14 +10,22 @@ window.onload = () => {
 }
 
 async function loadGamePositions() {
-    document.getElementById('game-title').textContent = 'Game: ' + game_id;
+
+    let game_name
+    fetch(`/games/${game_id}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("game-title").innerText = data.name;
+        }).catch(() => {
+            window.location.href = `/`
+        })
 
     const playersBody = document.querySelector('#players-table tbody');
     const pointsBody = document.querySelector('#points-table tbody');
     const teamsBody = document.querySelector('#teams-table tbody');
 
     // Fetch player positions
-    fetch(`https://themostdangerousgame.net/positions/${game_id}`)
+    fetch(`/positions/${game_id}`)
         .then(response => response.json())
         .then(data => {
             playersBody.innerHTML = '';
@@ -31,7 +39,7 @@ async function loadGamePositions() {
                     <td>${p.user_id}</td>
                     <td>${p.team_id}</td>
                     <td>${p.timestamp}</td>
-                    <td><a href="https://themostdangerousgame.net/join/${game_id}/${p.user_id}">  Use  </a></td>
+                    <td><a href="/join/${game_id}/${p.user_id}">  Use  </a></td>
                 `;
                 playersBody.appendChild(row);
             });
@@ -42,7 +50,7 @@ async function loadGamePositions() {
     );
 
     // Fetch point locations
-    fetch(`https://themostdangerousgame.net/points/${game_id}`)
+    fetch(`/points/${game_id}`)
         .then(response => response.json())
         .then(data => {
         pointsBody.innerHTML = '';
@@ -69,7 +77,7 @@ async function loadGamePositions() {
     );
 
     // Fetch team locations
-    fetch(`https://themostdangerousgame.net/teams/${game_id}`)
+    fetch(`/teams/${game_id}`)
         .then(response => response.json())
         .then(data => {
         teamsBody.innerHTML = '';
@@ -81,7 +89,7 @@ async function loadGamePositions() {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${team.team_id}</td>
-                <td>${team.points}</td>
+                <td>${team.score}</td>
             `;
             teamsBody.appendChild(row)
         })

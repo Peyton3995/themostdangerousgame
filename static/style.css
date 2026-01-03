@@ -60,7 +60,8 @@ tbody tr:hover {
 }
 
 body {
-    background-color: black
+    background-color: black;
+    font-family: "MS Sans Serif", Tahoma, Arial, sans-serif;
 }
 
 h1 {
@@ -102,3 +103,43 @@ footer {
     height: 500px;
     margin: 1em auto;
     }
+
+button {
+    font-family: "MS Sans Serif", Tahoma, Arial, sans-serif;
+    font-size: 12px;
+    color: #000;
+    background: #c0c0c0;
+    padding: 4px 12px;
+    border: 2px solid;
+    border-top-color: #ffffff;
+    border-left-color: #ffffff;
+    border-right-color: #404040;
+    border-bottom-color: #404040;
+    box-shadow: inset -1px -1px 0 #808080;
+    cursor: pointer;
+    outline: none;
+}
+
+button:hover {
+    background: #c0c0c0;
+}
+
+button:active {
+    border-top-color: #404040;
+    border-left-color: #404040;
+    border-right-color: #ffffff;
+    border-bottom-color: #ffffff;
+    box-shadow: inset 1px 1px 0 #808080;
+    padding: 5px 11px 3px 13px; /* subtle "pressed" shift */
+}
+
+button:focus {
+    outline: 1px dotted #000;
+    outline-offset: -4px;
+}
+
+button:disabled {
+    color: #808080;
+    text-shadow: 1px 1px #ffffff;
+    cursor: default;
+}
