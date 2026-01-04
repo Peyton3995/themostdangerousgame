@@ -226,14 +226,16 @@ def update_position(user_id):
     data = request.get_json()
     latitude = data.get("latitude")
     longitude = data.get("longitude")
+    team_id = data.get("team_id")
+    game_id = data.get("game_id")
 
     if latitude is None or longitude is None:
         return jsonify({"error": "latitude and longitude are required"}), 400
 
     conn = get_db_connection()
     result = conn.execute(
-        "UPDATE positions SET latitude = ?, longitude = ?, timestamp = CURRENT_TIMESTAMP WHERE user_id = ?",
-        (latitude, longitude, current_user.id),
+        "UPDATE positions SET latitude = ?, longitude = ?, team_id = ?, timestamp = CURRENT_TIMESTAMP WHERE user_id = ? AND game_id = ?",
+        (latitude, longitude, team_id, current_user.username, game_id),
     )
     conn.commit()
     conn.close()
@@ -248,6 +250,18 @@ def update_position(user_id):
 def delete_positions_by_game(game_id):
     conn = get_db_connection()
     result = conn.execute("DELETE FROM positions WHERE game_id = ?", (game_id,))
+    conn.commit()
+    conn.close()
+
+    if result.rowcount == 0:
+        return jsonify({"message": f"No positions found for game_id '{game_id}'"}), 404
+
+    return jsonify({"message": f"Deleted position(s) for game_id '{game_id}'"}), 200
+
+@app.route("/positions/<game_id>/<user_id>", methods=["DELETE"])
+def delete_positions_by_user(game_id, user_id):
+    conn = get_db_connection()
+    result = conn.execute("DELETE FROM positions WHERE game_id = ? AND user_id = ?", (game_id, user_id))
     conn.commit()
     conn.close()
 
@@ -416,7 +430,10 @@ def get_game(game_id):
 @app.route("/games/<game_id>", methods=["DELETE"])
 def delete_game(game_id):
     conn = get_db_connection()
-    result = conn.execute("DELETE FROM games WHERE name = ?", (game_id,))
+    result = conn.execute("DELETE FROM games WHERE id = ?", (game_id,))
+    conn.execute("DELETE FROM teams WHERE game_id = ?", (game_id,))
+    conn.execute("DELETE FROM positions WHERE game_id = ?", (game_id,))
+    conn.execute("DELETE FROM points WHERE game_id = ?", (game_id,))
     conn.commit()
     conn.close()
 

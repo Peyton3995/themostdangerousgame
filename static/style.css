@@ -3,6 +3,11 @@ Peyton Luhring
 Jan '24
 Web Apps personal page. CSS file
 */
+div{
+    margin-bottom: 5px;
+    margin-left: 5px;
+    margin-right: 5px;
+}
 
 /* Creates standard for all paragraphs */
 .paragraph-block {

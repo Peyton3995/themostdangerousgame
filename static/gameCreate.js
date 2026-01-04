@@ -1,4 +1,5 @@
 let game_id
+let stored_teams
 
 document.addEventListener("DOMContentLoaded", () => {
     const pathParts = window.location.pathname.split('/');
@@ -8,6 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     checkAuthStatus()
     loadPoints()
     loadTeams()
+    loadUsers()
 });
 
 async function getGameById(game_id) {
@@ -83,6 +85,7 @@ async function submitTeam() {
 async function loadTeams() {
     const res = await fetch(`/teams/${game_id}`);
     const teams = await res.json();
+    stored_teams = teams
 
     const tbody = document.getElementById("teams-body");
     tbody.innerHTML = "";
@@ -159,6 +162,80 @@ async function deletePoint(point_id) {
     loadPoints();
 }
 
+async function loadUsers() {
+    const playersBody = document.querySelector('#players-table tbody');
+    fetch(`/positions/${game_id}`)
+        .then(response => response.json())
+        .then(data => {
+            playersBody.innerHTML = '';
+            if (data.length === 0 && !is_joined) {
+                playersBody.innerHTML = '<tr><td colspan="4">No player data available.</td></tr>';
+                return;
+            }        
+            data.forEach(p => {
+                const teamOptions = stored_teams.map(team =>
+                    `<option value="${team.team_id}" ${team.team_id === p.team_id ? "selected" : ""}>
+                    ${team.team_id}
+                    </option>`
+                ).join("");
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                <td>${p.user_id}</td>
+                <td>${p.latitude}</td>
+                <td>${p.longitude}</td>
+                <td>
+                    <select onchange="changeUserTeam('${p.user_id}', this.value, ${p.latitude}, ${p.longitude})">
+                        <option value="">No Team</option>
+                        ${teamOptions}
+                    </select>
+                </td>
+                </td>
+                <td>${p.timestamp}</td>
+                <td>
+                    <button onclick="deleteUser('${p.user_id}')">Kick</button>
+                </td>`
+                playersBody.appendChild(row);
+            });
+        })
+        .catch(() => {
+            playersBody.innerHTML = '<tr><td colspan="4">Failed to load player data.</td></tr>';
+        }
+    );
+}
+
+async function deleteUser(user_id) {
+
+    await fetch(`/positions/${game_id}/${user_id}`, {
+        method: "DELETE"
+    });
+
+    loadUsers();
+}
+
+async function changeUserTeam(user_id, team_id, latitude, longitude) {
+    await fetch(`/positions/${user_id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            game_id: game_id,
+            team_id: team_id,
+            latitude: latitude,
+            longitude: longitude
+        })
+    });
+
+    loadUsers();
+}
+
+async function deleteGame(){
+    window.location.href = "/";
+    await fetch(`/games/${game_id}`, {
+        method: "DELETE"
+    })
+}
+
 async function getLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(success, error);
@@ -203,6 +280,7 @@ async function checkAuthStatus() {
             `Logged in as ${data.username}`;
         document.getElementById("user-display").style.display = "inline";
         document.getElementById("logout-btn").style.display = "inline";
+        document.getElementById("view-game").href = `/display_game/${game_id}`
     }
 }
 

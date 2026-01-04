@@ -18,6 +18,8 @@
 
 <body>
     <div id="auth-bar" style="display:flex; justify-content:flex-end; gap:10px; padding:10px;">
+        <span><a id="view-game" href="">View Game</a></span>
+        <button type="button" onclick="deleteGame()">End Game</button>
         <span id="user-display" style="display:none;"></span>
         <button id="logout-btn" style="display:none;">Logout</button>
     </div>
@@ -29,53 +31,31 @@
     </div>
 
     <div style="margin-left: auto; margin-right: auto; text-align: center">
-        <form>
-            <h3>Establish points...</h3>
-
-            <label for="point_id">Point Name:</label>
-            <input type="text" id="point_id" name="point_id" required>
-
-            <label for="point_lat">Latitude:</label>
-            <input type="text" id="point_lat" name="point_lat" required>
-
-            <label for="point_long">Longitude:</label>
-            <input type="text" id="point_long" name="point_long" required>
-
-            <button type="button" onclick="getLocation()">Use Current Position</button>
-            <button type="button" onclick="submitPoint()">Submit</button>
-        </form>
-
-        <form>
-            <h3>Create teams</h3>
-
-            <label for="team_id">Team Name</label>
-            <input type="text" id="team_id" name="team_id" required>
-
-            <button type="button" onclick="submitTeam()">Submit</button>
-        </form>
 
         <div style="display:flex; justify-content:space-around; margin-top:40px;">
-
-            <!-- TEAMS TABLE -->
-            <div>
-                <h3>Existing Teams</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Team Name</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="teams-body">
-                        <tr>
-                            <td colspan="2">Loading teams...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
             <!-- POINTS TABLE -->
             <div>
+                <form>
+                    <h3>Establish points...</h3>
+                    <div>
+                        <label for="point_id">Point Name:</label>
+                        <input type="text" id="point_id" name="point_id" required>
+                    </div>
+                    <div>
+                        <button type="button" onclick="getLocation()">Use Current Position</button>
+                    </div>
+                    <div>
+                        <label for="point_lat">Latitude:</label>
+                        <input type="text" id="point_lat" name="point_lat" required>
+                    </div>
+                    <div>
+                        <label for="point_long">Longitude:</label>
+                        <input type="text" id="point_long" name="point_long" required>
+                    </div>
+                    <div>
+                        <button type="button" onclick="submitPoint()">Submit</button>
+                    </div>
+                </form>
                 <h3>Existing Points</h3>
                 <table>
                     <thead>
@@ -94,9 +74,57 @@
                 </table>
             </div>
 
-        </div>
+            <!-- USER TABLE -->
+            <div>
+                <h3>Player Information</h3>
+                <table id="players-table">
+                    <thead>
+                        <tr>
+                            <th>Player</th>
+                            <th>Latitude</th>
+                            <th>Longitude</th>
+                            <th>Team</th>
+                            <th>Timestamp</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="4">Loading player data...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-        <p id="response"></p>
+            <!-- TEAMS TABLE -->
+            <div>
+                <form>
+                    <h3>Create teams...</h3>
+
+                    <label for="team_id">Team Name: </label>
+                    <input type="text" id="team_id" name="team_id" required>
+
+                    <button type="button" onclick="submitTeam()">Submit</button>
+                </form>
+                <h3>Existing Teams</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Team Name</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teams-body">
+                        <tr>
+                            <td colspan="2">Loading teams...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div>
+            <p id="response"></p>
+        </div>
     </div>
 
     <footer>
