@@ -4,6 +4,8 @@ import {findCurrentUserPosition, distanceInFeet, findClosePlayers, findNearestPo
 let game_id;
 let is_joined = false;
 
+let user_information;
+
 document.getElementById("join-button").addEventListener("click", joinGame);
 
 let user_longitude;
@@ -149,6 +151,33 @@ async function loadTeamsForJoin() {
     });
 }
 
+async function updateUserLocation() {
+    if (!is_joined) return;
+
+    try {
+        let currentPosition = await findCurrentUserPosition()
+
+        user_latitude = currentPosition.latitude
+        user_longitude = currentPosition.longitude
+
+        await fetch(`/position/${game_id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+                game_id: game_id,
+                team_id: user_information.position.team_id,
+                latitude: user_latitude,
+                longitude: user_longitude
+            })
+        });
+        loadGamePositions()
+        console.log("Location updated");
+    } catch (err) {
+        console.error("Failed to update location", err);
+    }
+}
+
 async function checkJoinStatus() {
     const res = await fetch(`/position/${game_id}`, {
         credentials: "include"
@@ -157,6 +186,8 @@ async function checkJoinStatus() {
     if (!res.ok) return;
 
     const data = await res.json();
+
+    user_information = data
 
     if (data.joined) {
         document.getElementById("play-container").style.display = "block";
@@ -168,6 +199,14 @@ async function checkJoinStatus() {
 
         user_latitude = currentPosition.latitude
         user_longitude = currentPosition.longitude
+
+        // initial update immediately
+        updateUserLocation();
+
+        // then every 30 seconds
+        if (!window.locationInterval) {
+            window.locationInterval = setInterval(updateUserLocation, 30000);
+        }
     } else {
         document.getElementById("join-container").style.display = "block";
         document.getElementById("play-container").style.display = "none";
@@ -240,6 +279,10 @@ document.getElementById("logout-btn").onclick = async () => {
         credentials: "include"
     });
     window.location.href = "/";
+
+    if (window.locationInterval) {
+        clearInterval(window.locationInterval);
+    }
 }
 
 function addDistanceColumnHeader() {

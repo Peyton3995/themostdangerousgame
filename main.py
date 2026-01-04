@@ -223,7 +223,7 @@ def get_positions(game_id):
 # --- PUT: Update position for a given user ---
 @app.route("/positions/<user_id>", methods=["PUT"])
 @login_required
-def update_position(user_id):
+def update_position_by_user(user_id):
     data = request.get_json()
     latitude = data.get("latitude")
     longitude = data.get("longitude")
@@ -238,6 +238,32 @@ def update_position(user_id):
     result = conn.execute(
         "UPDATE positions SET latitude = ?, longitude = ?, team_id = ?, timestamp = CURRENT_TIMESTAMP WHERE user_id = ? AND game_id = ?",
         (latitude, longitude, team_id, user_id, game_id),
+    )
+    conn.commit()
+    conn.close()
+
+    if result.rowcount == 0:
+        return jsonify({"error": "User not found"}), 404
+
+    return jsonify({"message": "Position updated successfully"})
+
+# --- PUT: Update position for a given user ---
+@app.route("/position/<game_id>", methods=["PUT"])
+@login_required
+def update_position_by_game_for_user(game_id):
+    data = request.get_json()
+    latitude = data.get("latitude")
+    longitude = data.get("longitude")
+    team_id = data.get("team_id")
+    game_id = data.get("game_id")
+
+    if latitude is None or longitude is None:
+        return jsonify({"error": "latitude and longitude are required"}), 400
+
+    conn = get_db_connection()
+    result = conn.execute(
+        "UPDATE positions SET latitude = ?, longitude = ?, team_id = ?, timestamp = CURRENT_TIMESTAMP WHERE user_id = ? AND game_id = ?",
+        (latitude, longitude, team_id, current_user.username, game_id),
     )
     conn.commit()
     conn.close()

@@ -25,10 +25,6 @@ export function findCurrentUserPosition() {
 }
 
 export function distanceInFeet(lat1, lon1, lat2, lon2) {
-    console.log(lat1)
-    console.log(lon1)
-    console.log(lat2)
-    console.log(lon2)
     const R = 6371000; // radius of the earth in meters
     const toRad = angle => angle * (Math.PI / 180);
 
