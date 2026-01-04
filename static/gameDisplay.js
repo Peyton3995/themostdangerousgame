@@ -161,8 +161,6 @@ async function checkJoinStatus() {
     if (data.joined) {
         document.getElementById("play-container").style.display = "block";
         document.getElementById("join-container").style.display = "none";
-        document.getElementById("edit-game").style.display = "inline"
-        document.getElementById("edit-link").href = `/add_game/${game_id}`
         is_joined = true
         addDistanceColumnHeader()
 
@@ -227,6 +225,8 @@ async function checkAuthStatus() {
             `Logged in as ${data.username}`;
         document.getElementById("user-display").style.display = "inline";
         document.getElementById("logout-btn").style.display = "inline";
+        document.getElementById("edit-game").style.display = "inline"
+        document.getElementById("edit-link").href = `/add_game/${game_id}`
 
         checkJoinStatus();
     } else {

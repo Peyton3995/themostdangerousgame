@@ -121,7 +121,8 @@ async function deleteTeam(team_id) {
         method: "DELETE"
     });
 
-    loadTeams();
+    loadTeams()
+    loadUsers()
 }
 
 async function loadPoints() {
@@ -219,6 +220,7 @@ async function changeUserTeam(user_id, team_id, latitude, longitude) {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
+            user_id: user_id,
             game_id: game_id,
             team_id: team_id,
             latitude: latitude,
