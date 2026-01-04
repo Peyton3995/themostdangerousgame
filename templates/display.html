@@ -14,11 +14,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
-    <meta http-equiv="refresh" content="30">
 </head>
 
 <body>
+    <div id="auth-bar" style="display:flex; justify-content:flex-end; gap:10px; padding:10px;">
+        <span id="user-display" style="display:none;"></span>
+        <button id="logout-btn" style="display:none;">Logout</button>
+    </div>
     <!-- centering div-->
     <div style="margin-left: auto; margin-right: auto; text-align: center">
         <h2 id="top">Welcome to...</h2>
@@ -26,9 +28,20 @@
     </div>
 
     <div style="margin-left: auto; margin-right: auto; text-align: center">
-
         <h2 style="color: red;" id="game-title">Loading...</h2>
+        <div id="join-container" style="display:none;">
+            <h3>Join this game</h3>
 
+            <select id="join-team">
+                <option value="">Select a team</option>
+            </select>
+
+            <button id="join-button">Join</button>
+        </div>
+
+        <div id="play-container" style="display:none;">
+            <span>You are playing now.</span>
+        </div>
         <h3>Player Information</h3>
         <table id="players-table">
             <thead>
@@ -36,7 +49,6 @@
                     <th>Player</th>
                     <th>Team</th>
                     <th>Timestamp</th>
-                    <th>-- * --</th>
                 </tr>
             </thead>
             <tbody>
@@ -80,7 +92,7 @@
         </table>
     </div>
 
-    <script src="{{ url_for('static', filename='gameDisplay.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='gameDisplay.js') }}"></script>
 
     <footer>
         <div>

@@ -96,6 +96,13 @@ function setupAuthUI() {
 
 function openAuth(mode) {
     authMode = mode
+    if(mode === "register"){
+        document.getElementById("signing-up").style.display = "block";
+        document.getElementById("logging-in").style.display = "none";
+    } else {
+        document.getElementById("logging-in").style.display = "block";
+        document.getElementById("signing-up").style.display = "none";
+    }
     document.getElementById("auth-form").style.display = "block"
 }
 

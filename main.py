@@ -69,12 +69,13 @@ def init_db():
     conn.execute("""
         CREATE TABLE IF NOT EXISTS positions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT UNIQUE NOT NULL,
+            user_id TEXT NOT NULL,
             team_id TEXT NOT NULL,
             game_id INTEGER NOT NULL,
             latitude REAL NOT NULL,
             longitude REAL NOT NULL,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(game_id, user_id),
             FOREIGN KEY(game_id) REFERENCES games(id)
         )
     """)
@@ -82,7 +83,7 @@ def init_db():
     conn.execute("""
         CREATE TABLE IF NOT EXISTS points (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            point_id TEXT UNIQUE NOT NULL,
+            point_id TEXT NOT NULL,
             game_id INTEGER NOT NULL,
             latitude REAL NOT NULL,
             longitude REAL NOT NULL,
@@ -91,6 +92,7 @@ def init_db():
             attackers INTEGER NOT NULL DEFAULT 0,
             team_id TEXT DEFAULT 'NOBODY',
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(point_id, game_id),
             FOREIGN KEY(game_id) REFERENCES games(id)
         )
     """)
@@ -108,8 +110,9 @@ def init_db():
         CREATE TABLE IF NOT EXISTS teams (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             game_id INTEGER NOT NULL,
-            team_id TEXT UNIQUE NOT NULL,
+            team_id TEXT NOT NULL,
             score INTEGER NOT NULL DEFAULT 0,
+            UNIQUE(game_id, team_id),
             FOREIGN KEY(game_id) REFERENCES games(id)
         )
     """)
@@ -158,23 +161,24 @@ def join_game(game_id, user_id):
 
 # --- POST: Add a new position ---
 @app.route("/positions", methods=["POST"])
+@login_required
 def add_position():
     data = request.get_json()
 
-    user_id = data.get("user_id")
     team_id = data.get("team_id")
     game_id = data.get("game_id")
     latitude = data.get("latitude")
     longitude = data.get("longitude")
 
-    if user_id is None or latitude is None or longitude is None or team_id is None or game_id is None:
+    if current_user.id is None or latitude is None or longitude is None or team_id is None or game_id is None:
         return jsonify({"error": "user_id, latitude, and longitude are required"}), 400
 
     try:
+        print(current_user.username)
         conn = get_db_connection()
         conn.execute(
             "INSERT INTO positions (user_id, team_id, game_id, latitude, longitude) VALUES (?, ?, ?, ?, ?)",
-            (user_id, team_id, game_id, latitude, longitude),
+            (current_user.username, team_id, game_id, latitude, longitude),
         )
         conn.commit()
         conn.close()
@@ -184,6 +188,23 @@ def add_position():
         conn.close()
         return jsonify({"error": "User ID already exists. Use PUT to update."}), 409
 
+#--- This will get just one position and is used to determine if the user is already in the game
+@app.route("/position/<game_id>", methods=["GET"])
+def get_my_position(game_id):
+    conn = get_db_connection()
+    row = conn.execute("""
+        SELECT * FROM positions
+        WHERE game_id = ? AND user_id = ?
+    """, (game_id, current_user.username)).fetchone()
+    conn.close()
+
+    if row is None:
+        return jsonify({"joined": False})
+
+    return jsonify({
+        "joined": True,
+        "position": dict(row)
+    })
 
 # --- GET: Retrieve all positions for given game---
 @app.route("/positions/<game_id>", methods=["GET"])
@@ -200,6 +221,7 @@ def get_positions(game_id):
 
 # --- PUT: Update position for a given user ---
 @app.route("/positions/<user_id>", methods=["PUT"])
+@login_required
 def update_position(user_id):
     data = request.get_json()
     latitude = data.get("latitude")
@@ -211,7 +233,7 @@ def update_position(user_id):
     conn = get_db_connection()
     result = conn.execute(
         "UPDATE positions SET latitude = ?, longitude = ?, timestamp = CURRENT_TIMESTAMP WHERE user_id = ?",
-        (latitude, longitude, user_id),
+        (latitude, longitude, current_user.id),
     )
     conn.commit()
     conn.close()
@@ -235,7 +257,6 @@ def delete_positions_by_game(game_id):
     return jsonify({"message": f"Deleted position(s) for game_id '{game_id}'"}), 200
 
 # --- ENDPOINTS FOR CREATING CONTROL POINTS --- #
-
 @app.route("/points", methods=["POST"])
 def add_point():
     data = request.get_json()
