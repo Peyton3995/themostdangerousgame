@@ -533,6 +533,8 @@ def put_team(game_id, team_id):
 
     return jsonify({"message": f"Update point(s) for team_id '{team_id}'"}), 200
 
+
+# ---- Make sure to tie this to game_id 
 # --- DELETE: Delete all positions for a given team_id ---
 @app.route("/teams/<team_id>", methods=["DELETE"])
 def delete_team(team_id):

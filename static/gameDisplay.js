@@ -6,6 +6,10 @@ let is_joined = false;
 
 let user_information;
 
+let game_points
+let game_positions
+let game_teams
+
 document.getElementById("join-button").addEventListener("click", joinGame);
 
 let user_longitude;
@@ -53,14 +57,17 @@ async function loadGamePositions() {
                 playersBody.appendChild(row);
                 });
             } else {
+                game_positions = data
                 data.forEach(p => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                    <td>${p.user_id}</td>
-                    <td>${p.team_id}</td>
-                    <td>${p.timestamp}</td>
-                    <td>${distanceInFeet(user_latitude, user_longitude, p.latitude, p.longitude)}</td>`;
-                    playersBody.appendChild(row);
+                    if(p.user_id !== user_information.position.user_id) { 
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                        <td>${p.user_id}</td>
+                        <td>${p.team_id}</td>
+                        <td>${p.timestamp}</td>
+                        <td>${distanceInFeet(user_latitude, user_longitude, p.latitude, p.longitude)}</td>`;
+                        playersBody.appendChild(row);
+                    }
                 });
             }
         })
@@ -91,6 +98,7 @@ async function loadGamePositions() {
                 pointsBody.appendChild(row);
             });
         } else {
+            game_points = data
             data.forEach(point => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -121,6 +129,7 @@ async function loadGamePositions() {
             teamsBody.innerHTML = '<tr><td colspan="5">No points available.</td></tr>'
             return;
         }
+        game_teams = data
         data.forEach(team => {
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -171,6 +180,8 @@ async function updateUserLocation() {
                 longitude: user_longitude
             })
         });
+
+        findNearestPoint(game_points, game_positions, game_teams, user_latitude, user_longitude, game_id)
         loadGamePositions()
         console.log("Location updated");
     } catch (err) {
@@ -192,6 +203,7 @@ async function checkJoinStatus() {
     if (data.joined) {
         document.getElementById("play-container").style.display = "block";
         document.getElementById("join-container").style.display = "none";
+        document.getElementById("team-affilation").innerText = `You are playing for: ${user_information.position.team_id}`
         is_joined = true
         addDistanceColumnHeader()
 
@@ -205,7 +217,7 @@ async function checkJoinStatus() {
 
         // then every 30 seconds
         if (!window.locationInterval) {
-            window.locationInterval = setInterval(updateUserLocation, 30000);
+            window.locationInterval = setInterval(updateUserLocation, 60000);
         }
     } else {
         document.getElementById("join-container").style.display = "block";

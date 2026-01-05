@@ -1,3 +1,9 @@
+let pointData
+let playerData
+let teamScores;
+
+let game_id
+
 export function findCurrentUserPosition() {
     return new Promise((resolve, reject) => {
         if (!navigator.geolocation) {
@@ -16,9 +22,7 @@ export function findCurrentUserPosition() {
                 reject(error);
             },
             {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
+                timeout: 45000
             }
         );
     });
@@ -43,8 +47,11 @@ export function distanceInFeet(lat1, lon1, lat2, lon2) {
     return (Math.trunc(distanceFeet * 1000) / 1000); // trunc to thousandths place
 }
 
-export function findNearestPoint() {
-    console.log(gamePoints)
+export function findNearestPoint(gamePoints, gamePositions, gameTeams, user_latitude, user_longitude, game) {
+    pointData = gamePoints
+    playerData = gamePositions
+    teamScores = gameTeams
+    game_id = game
     // append distance to each one
     const distanceToPoints = gamePoints.map(d => ({
         ...d,
@@ -72,7 +79,7 @@ export function findNearestPoint() {
     if(closestPoint.length > 0) {
         findClosePlayers(closestPoint[0].point_id, closestPoint[0].latitude, closestPoint[0].longitude)
 
-        document.getElementById('test').innerHTML = closestPoint[0].point_id;
+        document.getElementById('capturing').innerHTML = `In range of: ${closestPoint[0].point_id}`;
     }
 }
 
@@ -104,7 +111,7 @@ export function findClosePlayers(point, point_latitude, point_longitude) {
 }
 
 export async function capturingAPoint(closePoint, closePlayers) {
-    const matchedPoint = gamePoints.find(point => point.point_id === closePoint);
+    const matchedPoint = pointData.find(point => point.point_id === closePoint);
     console.log(matchedPoint)
 
     let teamCounts = {};
@@ -144,7 +151,7 @@ export function updateScores(winningTeam) {
     let awardedTeam = teamScores.find(team => team.team_id === winningTeam);
 
     // get winning teams current score and bump it by 1
-    let awardedPoints = awardedTeam.points + 1;
+    let awardedPoints = awardedTeam.score + 1;
 
     // put new score
     updateTeamScore(winningTeam, awardedPoints)
@@ -162,4 +169,24 @@ async function updateTeamScore(team_id, score){
     })
 
     console.log(response)
+}
+
+async function updatePoint(captured, defenders, attackers, team_id, point_id){
+    const response = await fetch(`/points/${game_id}/${point_id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+            body: JSON.stringify({
+                captured: captured,
+                defenders: defenders,
+                attackers: attackers,
+                team_id: team_id,
+                point_id: point_id,
+                game_id: game_id
+            })
+    })
+
+    console.log(response) 
+    updateScores(team_id)
 }
