@@ -1,4 +1,4 @@
-import {findCurrentUserPosition, distanceInFeet, findClosePlayers, findNearestPoint} from "./gameFunctions.js"
+import {findCurrentUserPosition, distanceInFeet} from "./gameFunctions.js"
 // on page load, make all get requests
 
 let game_id;
@@ -17,8 +17,7 @@ let user_latitude;
 
 window.onload = () => {
     const pathParts = window.location.pathname.split('/');
-    game_id = pathParts[pathParts.length - 1];
-    
+    game_id = pathParts[pathParts.length - 1]; 
     checkAuthStatus();
 }
 
@@ -89,10 +88,9 @@ async function loadGamePositions() {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${point.point_id}</td>
-                    <td>${point.latitude}</td>
-                    <td>${point.longitude}</td>
                     <td>${point.team_id}</td>
                     <td>${point.defenders}</td>
+                    <td>${point.attackers}</td>
                     <td>${point.timestamp}</td>
                 `;
                 pointsBody.appendChild(row);
@@ -103,10 +101,9 @@ async function loadGamePositions() {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${point.point_id}</td>
-                    <td>${point.latitude}</td>
-                    <td>${point.longitude}</td>
                     <td>${point.team_id}</td>
                     <td>${point.defenders}</td>
+                    <td>${point.attackers}</td>
                     <td>${point.timestamp}</td>
                     <td>${distanceInFeet(user_latitude, user_longitude, point.latitude, point.longitude)}</td>
                 `;
@@ -181,9 +178,7 @@ async function updateUserLocation() {
             })
         });
 
-        findNearestPoint(game_points, game_positions, game_teams, user_latitude, user_longitude, game_id)
         loadGamePositions()
-        console.log("Location updated");
     } catch (err) {
         console.error("Failed to update location", err);
     }
@@ -217,7 +212,7 @@ async function checkJoinStatus() {
 
         // then every 30 seconds
         if (!window.locationInterval) {
-            window.locationInterval = setInterval(updateUserLocation, 60000);
+            window.locationInterval = setInterval(updateUserLocation, 10000);
         }
     } else {
         document.getElementById("join-container").style.display = "block";

@@ -2,6 +2,9 @@ from flask import Flask, request, jsonify, render_template, abort
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask_cors import CORS
 import sqlite3
+import game_logic
+import os
+import time
 
 from flask_login import (
     LoginManager,
@@ -145,6 +148,7 @@ def create_game(game_id):
     conn.close()
     if game is None:
         abort(403)
+    # using that ID, confirm it is the game's owner, if not abort
     if (game["creator_id"] != current_user.id):
         abort(403)
     else:
@@ -337,6 +341,16 @@ def get_points(game_id):
     
 
     return jsonify(positions)
+
+# --- get one point for a given game
+@app.route("/point/<game_id>/<point_id>", methods=["GET"])
+def get_point(game_id, point_id):
+    conn = get_db_connection()
+    result = conn.execute("SELECT * FROM points WHERE game_id = ? AND point_id = ?", (game_id, point_id)).fetchone()
+    conn.commit()
+    conn.close()
+
+    return jsonify(dict(result))
 
 @app.route("/points/<game_id>/<point_id>", methods=["PUT"])
 def update_points(game_id, point_id):
@@ -624,15 +638,22 @@ def auth_status():
 def passive_score():
     conn = get_db_connection()
     rows = conn.execute("SELECT * FROM games").fetchall()
-    conn.commit()
     conn.close()
-    games = [dict(row) for row in rows]
+
+    print("Checking game state for all games...")
+
+    for game in rows:
+        print("  State of: " + game["name"])
+        game_logic.evaluate_game_state(game["id"])
 
 
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(passive_score, 'interval', seconds=10)
-scheduler.start()
+
+
+if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+    scheduler.start()
 
 if __name__ == "__main__":
     init_db()
