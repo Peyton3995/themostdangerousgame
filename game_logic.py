@@ -30,6 +30,8 @@ def distance_in_feet(lat1, lon1, lat2, lon2):
 
 from datetime import datetime, timedelta
 
+# Iterate through players and find points within a hundred feet of them
+# If multiple points within a hundred feet, assign to closest one
 def assign_players_to_points(players, points, radius_ft=100):
     assignments = {p["id"]: [] for p in points}
 
@@ -45,6 +47,9 @@ def assign_players_to_points(players, points, radius_ft=100):
                 point["longitude"]
             )
 
+            # If the current distance to a point is less than the closest distance
+            # for a previous assigned point, re-assign it
+            # If there is nothing closer, assign current cloest point
             if dist <= radius_ft and (closest_dist is None or dist < closest_dist):
                 closest_dist = dist
                 closest_point = point
@@ -65,18 +70,18 @@ def resolve_point_state(conn, point, players, game_id):
         team = p["team_id"]
         team_counts[team] = team_counts.get(team, 0) + 1
 
-    print("Team presence at point:")
+    print(f"      Team presence at point: {point}")
     for team, count in team_counts.items():
-        print(f"     Team {team}: {count} player(s)")
+        print(f"       Team {team}: {count} player(s)")
 
     sorted_teams = sorted(team_counts.items(), key=lambda x: x[1], reverse=True)
 
     winning_team, winning_count = sorted_teams[0]
     second_count = sorted_teams[1][1] if len(sorted_teams) > 1 else 0
 
-    print(f"Winning team: {winning_team}")
-    print(f"Winning count: {winning_count}")
-    print(f"Second count: {second_count}")
+    print(f"        Winning team: {winning_team}")
+    print(f"        Winning count: {winning_count}")
+    print(f"        Second count: {second_count}")
 
     # Rallying of teams around a point.
 
@@ -91,6 +96,8 @@ def resolve_point_state(conn, point, players, game_id):
         """, (winning_count, second_count, point["id"]))
         return
     
+    # Used for a more active game, where a point is actively being contest 
+    # but defenders are present and outnumbering attackers
     if(second_count > point["attackers"]):
         conn.execute("""
             UPDATE points
@@ -138,9 +145,11 @@ def award_point_for_capture(conn, winning_team, game_id):
     """, (winning_team, game_id)) 
     return
 
+# Takes in game ID and collects all users and points related to that game
 def evaluate_game_state(game_id):
     conn = get_db_connection()
 
+    # We want users who have been active within the last two hours
     cutoff = datetime.utcnow() - timedelta(hours=2)
 
     players = [
@@ -159,14 +168,15 @@ def evaluate_game_state(game_id):
         """, (game_id,)).fetchall()
     ]
 
+    # Assign players to points closest to them
     assignments = assign_players_to_points(players, points)
 
     for point in points:
-        print("    " + point["point_id"])
+        print("   *" + point["point_id"])
         assigned_players = assignments.get(point["id"], [])
         
         for player in assigned_players:
-            print( f"     {player["user_id"]} | {player["team_id"]} | lat: {player["latitude"]} | long: {player["longitude"]}")
+            print( f"     * {player["user_id"]} | {player["team_id"]} | lat: {player["latitude"]} | long: {player["longitude"]}")
     
         resolve_point_state(conn, point, assigned_players, game_id)
 
@@ -174,3 +184,75 @@ def evaluate_game_state(game_id):
     conn.commit()
     conn.close()
 
+# Scheduled functions for passive game activity
+def bonus_for_teams_holding_points(game_id):
+    conn = get_db_connection()
+
+    points = [
+        dict(r) for r in conn.execute("""
+            SELECT *
+            FROM points
+            WHERE game_id = ?
+        """, (game_id,)).fetchall()
+    ]
+
+    for point in points:
+        holding_team = point["team_id"]
+
+        if holding_team != "NOBODY":
+            conn.execute("""
+                UPDATE teams 
+                SET score = score + 1 
+                WHERE game_id = ? AND team_id = ?
+            """, (game_id, holding_team))
+
+    conn.commit()
+    conn.close()
+
+def lower_point_defenders_overtime(game_id):
+    conn = get_db_connection()
+
+    points = [
+        dict(r) for r in conn.execute("""
+            SELECT *
+            FROM points
+            WHERE game_id = ?
+        """, (game_id,)).fetchall()
+    ]
+
+    for point in points:
+        defenders = point["defenders"]
+
+        if defenders > 0:
+            conn.execute("""
+                UPDATE points 
+                SET defenders = defenders - 1 
+                WHERE game_id = ? AND point_id = ?
+            """, (game_id, point["point_id"]))
+
+    conn.commit()
+    conn.close()
+
+def lower_point_attackers_overtime(game_id):
+    conn = get_db_connection()
+
+    points = [
+        dict(r) for r in conn.execute("""
+            SELECT *
+            FROM points
+            WHERE game_id = ?
+        """, (game_id,)).fetchall()
+    ]
+
+    for point in points:
+        attackers = point["attackers"]
+
+        if attackers > 0:
+            conn.execute("""
+                UPDATE points 
+                SET attackers = 0
+                WHERE game_id = ? AND point_id = ?
+            """, (game_id, point["point_id"]))
+
+    conn.commit()
+    conn.close()

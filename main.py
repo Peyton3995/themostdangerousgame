@@ -635,7 +635,7 @@ def auth_status():
 
 # --- Automated Jobs ---
 
-def passive_score():
+def check_game_state():
     conn = get_db_connection()
     rows = conn.execute("SELECT * FROM games").fetchall()
     conn.close()
@@ -646,10 +646,44 @@ def passive_score():
         print("  State of: " + game["name"])
         game_logic.evaluate_game_state(game["id"])
 
+def passive_game_score_update():
+    conn = get_db_connection()
+    rows = conn.execute("SELECT * FROM games").fetchall()
+    conn.close()
 
+    print("Checking game scores...")
+
+    for game in rows:
+        print("  Updating score for: " + game["name"])
+        game_logic.bonus_for_teams_holding_points(game["id"])
+
+def passive_lower_point_defenders():
+    conn = get_db_connection()
+    rows = conn.execute("SELECT * FROM games").fetchall()
+    conn.close()
+
+    print("Checking defenders for points...")
+
+    for game in rows:
+        print("  Updating Defenders for: " + game["name"])
+        game_logic.lower_point_defenders_overtime(game["id"])
+
+def passive_lower_point_attackers():
+    conn = get_db_connection()
+    rows = conn.execute("SELECT * FROM games").fetchall()
+    conn.close()
+
+    print("Checking defenders for points...")
+
+    for game in rows:
+        print("  Updating Attackers for: " + game["name"])
+        game_logic.lower_point_attackers_overtime(game["id"])
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(passive_score, 'interval', seconds=10)
+scheduler.add_job(check_game_state, 'interval', seconds=60)
+scheduler.add_job(passive_game_score_update, 'interval', seconds=7200)
+scheduler.add_job(passive_lower_point_defenders, 'interval', seconds=3600)
+scheduler.add_job(passive_lower_point_attackers, 'interval', seconds=1800)
 
 
 if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
