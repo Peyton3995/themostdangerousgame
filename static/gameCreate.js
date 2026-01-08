@@ -117,7 +117,7 @@ async function loadTeams() {
 async function deleteTeam(team_id) {
     if (!confirm(`Delete team "${team_id}"?`)) return;
 
-    await fetch(`/teams/${team_id}`, {
+    await fetch(`/teams/${game_id}/${team_id}`, {
         method: "DELETE"
     });
 
@@ -185,7 +185,7 @@ async function loadUsers() {
                 <td>${p.latitude}</td>
                 <td>${p.longitude}</td>
                 <td>
-                    <select onchange="changeUserTeam('${p.user_id}', this.value, ${p.latitude}, ${p.longitude})">
+                    <select onchange="changeUserTeam('${p.user_id}', this.value, ${p.latitude}, ${p.longitude}, ${game_id})">
                         <option value="">No Team</option>
                         ${teamOptions}
                     </select>
@@ -213,8 +213,8 @@ async function deleteUser(user_id) {
     loadUsers();
 }
 
-async function changeUserTeam(user_id, team_id, latitude, longitude) {
-    await fetch(`/positions/${user_id}`, {
+async function changeUserTeam(user_id, team_id, latitude, longitude, game_id) {
+    await fetch(`/positions/${game_id}/${user_id}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json"

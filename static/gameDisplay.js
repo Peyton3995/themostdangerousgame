@@ -8,7 +8,6 @@ let user_information;
 
 let game_points
 let game_positions
-let game_teams
 
 document.getElementById("join-button").addEventListener("click", joinGame);
 
@@ -56,7 +55,6 @@ async function loadGamePositions() {
                 playersBody.appendChild(row);
                 });
             } else {
-                game_positions = data
                 data.forEach(p => {
                     if(p.user_id !== user_information.position.user_id) { 
                         const row = document.createElement('tr');
@@ -69,6 +67,7 @@ async function loadGamePositions() {
                     }
                 });
             }
+            game_positions = data
         })
         .catch(() => {
             playersBody.innerHTML = '<tr><td colspan="4">Failed to load player data.</td></tr>';
@@ -96,7 +95,6 @@ async function loadGamePositions() {
                 pointsBody.appendChild(row);
             });
         } else {
-            game_points = data
             data.forEach(point => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -110,7 +108,7 @@ async function loadGamePositions() {
                 pointsBody.appendChild(row);
             });
         } 
-        
+        game_points = data
         })
         .catch(() => {
             pointsBody.innerHTML = '<tr><td colspan="5">Failed to load point data.</td></tr>';
@@ -126,7 +124,6 @@ async function loadGamePositions() {
             teamsBody.innerHTML = '<tr><td colspan="5">No points available.</td></tr>'
             return;
         }
-        game_teams = data
         data.forEach(team => {
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -212,7 +209,7 @@ async function checkJoinStatus() {
 
         // then every 30 seconds
         if (!window.locationInterval) {
-            window.locationInterval = setInterval(updateUserLocation, 10000);
+            window.locationInterval = setInterval(updateUserLocation, 20000);
         }
     } else {
         document.getElementById("join-container").style.display = "block";

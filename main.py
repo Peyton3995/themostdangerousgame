@@ -225,20 +225,33 @@ def get_positions(game_id):
 
 
 # --- PUT: Update position for a given user ---
-@app.route("/positions/<user_id>", methods=["PUT"])
 @login_required
-def update_position_by_user(user_id):
+@app.route("/positions/<game_id>/<user_id>", methods=["PUT"])
+def update_position_by_user(game_id, user_id):
     data = request.get_json()
     latitude = data.get("latitude")
     longitude = data.get("longitude")
     team_id = data.get("team_id")
-    game_id = data.get("game_id")
-    user_id = data.get("user_id")
 
     if latitude is None or longitude is None:
         return jsonify({"error": "latitude and longitude are required"}), 400
 
     conn = get_db_connection()
+
+    # Verify ownership
+    game = conn.execute(
+        "SELECT creator_id FROM games WHERE id = ?",
+        (game_id,)
+    ).fetchone()
+
+    if not game:
+        conn.close()
+        return jsonify({"error": "Game not found"}), 404
+
+    if game["creator_id"] != current_user.id:
+        conn.close()
+        return jsonify({"error": "I will break into your house and make you feel unsafe."}), 403
+
     result = conn.execute(
         "UPDATE positions SET latitude = ?, longitude = ?, team_id = ?, timestamp = CURRENT_TIMESTAMP WHERE user_id = ? AND game_id = ?",
         (latitude, longitude, team_id, user_id, game_id),
@@ -251,7 +264,7 @@ def update_position_by_user(user_id):
 
     return jsonify({"message": "Position updated successfully"})
 
-# --- PUT: Update position for a given user ---
+# --- PUT: Update position for a currently logged in user ---
 @app.route("/position/<game_id>", methods=["PUT"])
 @login_required
 def update_position_by_game_for_user(game_id):
@@ -265,6 +278,7 @@ def update_position_by_game_for_user(game_id):
         return jsonify({"error": "latitude and longitude are required"}), 400
 
     conn = get_db_connection()
+
     result = conn.execute(
         "UPDATE positions SET latitude = ?, longitude = ?, team_id = ?, timestamp = CURRENT_TIMESTAMP WHERE user_id = ? AND game_id = ?",
         (latitude, longitude, team_id, current_user.username, game_id),
@@ -277,23 +291,26 @@ def update_position_by_game_for_user(game_id):
 
     return jsonify({"message": "Position updated successfully"})
 
-# --- DELETE: Delete all positions for a given game_id ---
-@app.route("/positions/<game_id>", methods=["DELETE"])
-def delete_positions_by_game(game_id):
-    conn = get_db_connection()
-    result = conn.execute("DELETE FROM positions WHERE game_id = ?", (game_id,))
-    conn.commit()
-    conn.close()
-
-    if result.rowcount == 0:
-        return jsonify({"message": f"No positions found for game_id '{game_id}'"}), 404
-
-    return jsonify({"message": f"Deleted position(s) for game_id '{game_id}'"}), 200
-
 # delete only one position for a game
+@login_required
 @app.route("/positions/<game_id>/<user_id>", methods=["DELETE"])
 def delete_positions_by_user(game_id, user_id):
     conn = get_db_connection()
+
+    # Verify ownership
+    game = conn.execute(
+        "SELECT creator_id FROM games WHERE id = ?",
+        (game_id,)
+    ).fetchone()
+
+    if not game:
+        conn.close()
+        return jsonify({"error": "Game not found"}), 404
+
+    if game["creator_id"] != current_user.id:
+        conn.close()
+        return jsonify({"error": "I will break into your house and make you feel unsafe."}), 403
+    
     result = conn.execute("DELETE FROM positions WHERE game_id = ? AND user_id = ?", (game_id, user_id))
     conn.commit()
     conn.close()
@@ -304,8 +321,10 @@ def delete_positions_by_user(game_id, user_id):
     return jsonify({"message": f"Deleted position(s) for game_id '{game_id}'"}), 200
 
 # --- ENDPOINTS FOR CREATING CONTROL POINTS --- #
+@login_required
 @app.route("/points", methods=["POST"])
 def add_point():
+    conn = get_db_connection()
     data = request.get_json()
 
     point_id = data.get("point_id")
@@ -313,11 +332,25 @@ def add_point():
     latitude = data.get("latitude")
     longitude = data.get("longitude")
 
+    # Verify ownership
+    game = conn.execute(
+        "SELECT creator_id FROM games WHERE id = ?",
+        (game_id,)
+    ).fetchone()
+
+    if not game:
+        conn.close()
+        return jsonify({"error": "Game not found"}), 404
+
+    if game["creator_id"] != current_user.id:
+        conn.close()
+        return jsonify({"error": "Forbidden"}), 403
+
     if point_id is None or latitude is None or longitude is None or game_id is None:
         return jsonify({"error": "point_id, game_id, latitude, and longitude are required"}), 400
 
     try:
-        conn = get_db_connection()
+
         conn.execute(
             "INSERT INTO points (point_id, game_id, latitude, longitude) VALUES (?, ?, ?, ?)",
             (point_id, game_id, latitude, longitude),
@@ -352,6 +385,7 @@ def get_point(game_id, point_id):
 
     return jsonify(dict(result))
 
+"""
 @app.route("/points/<game_id>/<point_id>", methods=["PUT"])
 def update_points(game_id, point_id):
     data = request.get_json()
@@ -377,10 +411,11 @@ def update_points(game_id, point_id):
         return jsonify({"error": "Point not found"}), 404
 
     return jsonify({"message": "Point updated successfully"})
+"""
 
 # --- DELETE: Delete a given point ---
-@app.route("/points/<point_id>", methods=["DELETE"])
 @login_required
+@app.route("/points/<point_id>", methods=["DELETE"])
 def delete_point(point_id):
     conn = get_db_connection()
 
@@ -403,7 +438,8 @@ def delete_point(point_id):
 
 # --- End Points for Creating a Game
 
-# --- POST: Add a new position ---
+# --- POST: Create a new game ---
+@login_required
 @app.route("/games", methods=["POST"])
 def add_game():
     data = request.get_json()
@@ -469,37 +505,66 @@ def get_game(game_id):
         "timestamp": game["timestamp"]
     })
 
-# --- DELETE: Delete game by name---
+@login_required
 @app.route("/games/<game_id>", methods=["DELETE"])
 def delete_game(game_id):
     conn = get_db_connection()
-    result = conn.execute("DELETE FROM games WHERE id = ?", (game_id,))
-    conn.execute("DELETE FROM teams WHERE game_id = ?", (game_id,))
-    conn.execute("DELETE FROM positions WHERE game_id = ?", (game_id,))
+
+    # Verify ownership
+    game = conn.execute(
+        "SELECT creator_id FROM games WHERE id = ?",
+        (game_id,)
+    ).fetchone()
+
+    if not game:
+        conn.close()
+        return jsonify({"error": "Game not found"}), 404
+
+    if game["creator_id"] != current_user.id:
+        conn.close()
+        return jsonify({"error": "Forbidden"}), 403
+
+    # Delete everything tied to the game
     conn.execute("DELETE FROM points WHERE game_id = ?", (game_id,))
+    conn.execute("DELETE FROM positions WHERE game_id = ?", (game_id,))
+    conn.execute("DELETE FROM teams WHERE game_id = ?", (game_id,))
+    conn.execute("DELETE FROM games WHERE id = ?", (game_id,))
+
     conn.commit()
     conn.close()
 
-    if result.rowcount == 0:
-        return jsonify({"message": f"Game id not found. Doesn't exist or already deleted '{game_id}'"}), 404
-
-    return jsonify({"message": f"Deleted game id: '{game_id}'"}), 200
+    return jsonify({"message": f"Deleted game {game_id}"}), 200
 
 # --- END POINTS FOR TEAM CREATION AND UPDATING AND DELETING --- #
 
 # --- POST: Add a new team ---
+@login_required
 @app.route("/teams", methods=["POST"])
 def add_team():
+    conn = get_db_connection()
     data = request.get_json()
 
     game_id = data.get("game_id")
     team_id = data.get("team_id")
 
+    # Verify ownership
+    game = conn.execute(
+        "SELECT creator_id FROM games WHERE id = ?",
+        (game_id,)
+    ).fetchone()
+
+    if not game:
+        conn.close()
+        return jsonify({"error": "Game not found"}), 404
+
+    if game["creator_id"] != current_user.id:
+        conn.close()
+        return jsonify({"error": "Forbidden"}), 403
+
     if team_id is None or game_id is None:
         return jsonify({"error": "game_id, and team_id are required"}), 400
 
     try:
-        conn = get_db_connection()
         conn.execute(
             "INSERT INTO teams (team_id, game_id) VALUES (?, ?)",
             (team_id, game_id),
@@ -526,15 +591,30 @@ def get_teams(game_id):
 
 # --- PUT: Update information for a team for a given game
 # Used for updating score of teams
+@login_required
 @app.route("/teams/<game_id>/<team_id>", methods=["PUT"])
 def put_team(game_id, team_id):
+    conn = get_db_connection()
     data = request.get_json()
+
+    # Verify ownership
+    game = conn.execute(
+        "SELECT creator_id FROM games WHERE id = ?",
+        (game_id,)
+    ).fetchone()
+
+    if not game:
+        conn.close()
+        return jsonify({"error": "Game not found"}), 404
+
+    if game["creator_id"] != current_user.id:
+        conn.close()
+        return jsonify({"error": "Forbidden"}), 403
 
     points = data.get("points")
     if game_id is None or team_id is None:
         return jsonify({"error": "Need an existing game and team id"}), 400
     
-    conn = get_db_connection()
     result = conn.execute(
         "UPDATE teams SET score = ? WHERE game_id = ? AND team_id = ?", 
         (points, game_id, team_id)
@@ -547,14 +627,28 @@ def put_team(game_id, team_id):
 
     return jsonify({"message": f"Update point(s) for team_id '{team_id}'"}), 200
 
-
-# ---- Make sure to tie this to game_id 
 # --- DELETE: Delete all positions for a given team_id ---
-@app.route("/teams/<team_id>", methods=["DELETE"])
-def delete_team(team_id):
+@login_required
+@app.route("/teams/<game_id>/<team_id>", methods=["DELETE"])
+def delete_team(game_id, team_id):
     conn = get_db_connection()
-    result = conn.execute("DELETE FROM teams WHERE team_id = ?", (team_id,))
-    conn.execute("DELETE FROM positions WHERE team_id = ?", (team_id,))
+
+    # Verify ownership
+    game = conn.execute(
+        "SELECT creator_id FROM games WHERE id = ?",
+        (game_id,)
+    ).fetchone()
+
+    if not game:
+        conn.close()
+        return jsonify({"error": "Game not found"}), 404
+
+    if game["creator_id"] != current_user.id:
+        conn.close()
+        return jsonify({"error": "Forbidden"}), 403
+    
+    result = conn.execute("DELETE FROM teams WHERE game_id = ? AND team_id = ?", (game_id, team_id,))
+    conn.execute("DELETE FROM positions WHERE game_id = ? AND team_id = ?", (game_id, team_id,))
     conn.commit()
     conn.close()
 
@@ -634,7 +728,6 @@ def auth_status():
     return jsonify({"authenticated": False})
 
 # --- Automated Jobs ---
-
 def check_game_state():
     conn = get_db_connection()
     rows = conn.execute("SELECT * FROM games").fetchall()
