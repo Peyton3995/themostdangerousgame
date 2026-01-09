@@ -105,7 +105,8 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             creator_id INTEGER NOT NULL,
             name TEXT UNIQUE NOT NULL,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            access_code TEXT
         )
     """)
     conn.commit()
@@ -168,6 +169,7 @@ def join_game(game_id, user_id):
 @app.route("/positions", methods=["POST"])
 @login_required
 def add_position():
+    conn = get_db_connection()
     data = request.get_json()
 
     team_id = data.get("team_id")
@@ -175,12 +177,24 @@ def add_position():
     latitude = data.get("latitude")
     longitude = data.get("longitude")
 
+    access_code = data.get("access_code")
+
+    game = conn.execute(
+        "SELECT access_code, name FROM games WHERE id = ?",
+        (game_id,)
+    ).fetchone()
+
+    if ((game["access_code"] != access_code) and (game["access_code"] is not None)):
+        return jsonify({"error": "The correct access code is required to join this game."}), 403
+    
+    if(game is None):
+        return jsonify({"error":"You cannot join a game which does not exist"}), 404
+
     if current_user.id is None or latitude is None or longitude is None or team_id is None or game_id is None:
         return jsonify({"error": "user_id, latitude, and longitude are required"}), 400
 
     try:
-        print(current_user.username)
-        conn = get_db_connection()
+        print(f"{current_user.username} joined {game["name"]}")
         conn.execute(
             "INSERT INTO positions (user_id, team_id, game_id, latitude, longitude) VALUES (?, ?, ?, ?, ?)",
             (current_user.username, team_id, game_id, latitude, longitude),
@@ -504,6 +518,32 @@ def get_game(game_id):
         "creator_id": game["creator_id"],
         "timestamp": game["timestamp"]
     })
+
+@login_required
+@app.route("/games/<game_id>/<access_code>", methods=["PUT"])
+def put_game(access_code, game_id):
+    conn = get_db_connection()
+
+    # Verify ownership
+    game = conn.execute(
+        "SELECT creator_id FROM games WHERE id = ?",
+        (game_id,)
+    ).fetchone()
+
+    if not game:
+        conn.close()
+        return jsonify({"error": "Game not found"}), 404
+
+    if game["creator_id"] != current_user.id:
+        conn.close()
+        return jsonify({"error": "Forbidden"}), 403
+    
+    conn.execute("UPDATE games SET access_code = ? WHERE id = ?", (access_code, game_id))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"response": f"Successfully added access code to game with ID of {game_id}"})
 
 @login_required
 @app.route("/games/<game_id>", methods=["DELETE"])

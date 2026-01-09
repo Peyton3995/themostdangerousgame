@@ -12,6 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
     loadUsers()
 });
 
+document.getElementById("access-code-submit").addEventListener("click", changeAccessCode);
+
 async function getGameById(game_id) {
     const res = await fetch(`/games/${game_id}`);
 
@@ -113,6 +115,15 @@ async function loadTeams() {
         tbody.appendChild(row);
     });
 }
+
+async function changeAccessCode() {
+    const accessCode = document.getElementById("access-code").value
+
+    await fetch(`/games/${game_id}/${accessCode}`, {
+        method: "PUT"
+    })
+}
+
 
 async function deleteTeam(team_id) {
     if (!confirm(`Delete team "${team_id}"?`)) return;

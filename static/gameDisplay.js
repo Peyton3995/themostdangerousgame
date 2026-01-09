@@ -237,7 +237,8 @@ async function joinGame() {
                 game_id: game_id,
                 team_id: team,
                 latitude: current_position.latitude,
-                longitude: current_position.longitude
+                longitude: current_position.longitude,
+                access_code: document.getElementById('access-code').value
             })
         });
 
