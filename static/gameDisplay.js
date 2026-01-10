@@ -1,6 +1,16 @@
 import {findCurrentUserPosition, distanceInFeet} from "./gameFunctions.js"
 // on page load, make all get requests
 
+const map = L.map("map").setView([-48.8767, -123.3923], 17);
+
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: "&copy; OpenStreetMap contributors"
+}).addTo(map);
+
+const pointLayer = L.layerGroup().addTo(map);
+const playerLayer = L.layerGroup().addTo(map);
+
 let game_id;
 let is_joined = false;
 
@@ -22,7 +32,7 @@ window.onload = () => {
 
 async function loadGamePositions() {
 
-    fetch(`/games/${game_id}`)
+    await fetch(`/games/${game_id}`)
         .then(response => response.json())
         .then(data => {
             document.getElementById("game-title").innerText = data.name;
@@ -36,7 +46,7 @@ async function loadGamePositions() {
     const teamsBody = document.querySelector('#teams-table tbody');
 
     // Fetch player positions
-    fetch(`/positions/${game_id}`)
+    await fetch(`/positions/${game_id}`)
         .then(response => response.json())
         .then(data => {
             playersBody.innerHTML = '';
@@ -75,7 +85,7 @@ async function loadGamePositions() {
     );
 
     // Fetch point locations
-    fetch(`/points/${game_id}`)
+    await fetch(`/points/${game_id}`)
         .then(response => response.json())
         .then(data => {
         pointsBody.innerHTML = '';
@@ -116,7 +126,7 @@ async function loadGamePositions() {
     );
 
     // Fetch team locations
-    fetch(`/teams/${game_id}`)
+    await fetch(`/teams/${game_id}`)
         .then(response => response.json())
         .then(data => {
         teamsBody.innerHTML = '';
@@ -137,6 +147,8 @@ async function loadGamePositions() {
             teamsBody.innerHTML = '<tr><td colspan="5">Failed to load team data.</td></tr>'
         }
     );
+
+    await mapDisplay()
 }
 
 async function loadTeamsForJoin() {
@@ -305,4 +317,43 @@ function addDistanceColumnHeader() {
     th_points.innerText = "Distance (ft)";
 
     headerPointRow.appendChild(th_points)
+}
+
+async function mapDisplay(){
+    game_points.forEach(point => {
+        L.marker([point.latitude, point.longitude], {
+            icon: L.icon({
+            iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+            iconSize: [25, 41],
+            iconAnchor: [12, 41]
+        })
+    })
+    .addTo(pointLayer)
+    .bindPopup(`Point: ${point.point_id}`);
+    });
+
+    playerLayer.clearLayers()
+    game_positions.forEach(player => {
+        L.circleMarker(
+        [player.latitude, player.longitude],
+    {
+        radius: 6,
+        fillOpacity: 0.8
+    }
+    )
+    .addTo(playerLayer)
+    .bindPopup(`
+        <strong>User:</strong> ${player.user_id}<br>
+        <strong>Team:</strong> ${player.team_id}
+    `);
+    });
+
+    const bounds = L.latLngBounds([]);
+
+    game_points.forEach(p => bounds.extend([p.latitude, p.longitude]));
+    game_positions.forEach(p => bounds.extend([p.latitude, p.longitude]));
+
+    if (bounds.isValid()) {
+        map.fitBounds(bounds, { padding: [40, 40] });
+    }
 }
