@@ -70,7 +70,7 @@ def resolve_point_state(conn, point, players, game_id):
         team = p["team_id"]
         team_counts[team] = team_counts.get(team, 0) + 1
 
-    print(f"      Team presence at point: {point}")
+    print(f"      Team presence at point: {point["poinf_id"]}")
     for team, count in team_counts.items():
         print(f"       Team {team}: {count} player(s)")
 
