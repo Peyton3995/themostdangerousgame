@@ -519,6 +519,38 @@ def get_game(game_id):
         "timestamp": game["timestamp"]
     })
 
+@app.route("/timestamp/<game_id>", methods=["GET"])
+def get_game_timestamp(game_id):
+    conn = get_db_connection()
+    time = conn.execute(
+        """
+        SELECT timestamp
+        FROM games
+        WHERE id = ?
+        """,
+        (game_id,)
+    ).fetchone()
+    conn.commit()
+    conn.close()
+
+    if time is None:
+        return jsonify({"error": "Game not found"}), 404
+
+    return jsonify({
+        "timestamp": time["timestamp"]
+    })
+
+@app.route("/timestamp/<game_id>", methods=["PUT"])
+def put_game_timestamp(game_id):
+    conn = get_db_connection()
+
+    conn.execute("UPDATE games SET timestamp = CURRENT_TIMESTAMP WHERE id = ?", (game_id))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"response": f"Successfully updated timestamp for {game_id}"})
+
 @login_required
 @app.route("/games/<game_id>/<access_code>", methods=["PUT"])
 def put_game(access_code, game_id):
@@ -539,6 +571,32 @@ def put_game(access_code, game_id):
         return jsonify({"error": "Forbidden"}), 403
     
     conn.execute("UPDATE games SET access_code = ? WHERE id = ?", (access_code, game_id))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"response": f"Successfully added access code to game with ID of {game_id}"})
+
+@login_required
+@app.route("/games/<game_id>", methods=["PUT"])
+def put_remove_game_access_code(game_id):
+    conn = get_db_connection()
+
+    # Verify ownership
+    game = conn.execute(
+        "SELECT creator_id FROM games WHERE id = ?",
+        (game_id,)
+    ).fetchone()
+
+    if not game:
+        conn.close()
+        return jsonify({"error": "Game not found"}), 404
+
+    if game["creator_id"] != current_user.id:
+        conn.close()
+        return jsonify({"error": "Forbidden"}), 403
+    
+    conn.execute("UPDATE games SET access_code = NULL WHERE id = ?", (game_id))
 
     conn.commit()
     conn.close()

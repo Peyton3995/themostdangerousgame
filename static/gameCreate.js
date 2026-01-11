@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 document.getElementById("access-code-submit").addEventListener("click", changeAccessCode);
+document.getElementById("access-code-remove").addEventListener("click", removeAccessCode);
 
 async function getGameById(game_id) {
     const res = await fetch(`/games/${game_id}`);
@@ -120,6 +121,13 @@ async function changeAccessCode() {
     const accessCode = document.getElementById("access-code").value
 
     await fetch(`/games/${game_id}/${accessCode}`, {
+        method: "PUT"
+    })
+}
+
+async function removeAccessCode() {
+    document.getElementById("access-code").value = ""
+    await fetch(`/games/${game_id}`, {
         method: "PUT"
     })
 }

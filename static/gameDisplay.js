@@ -24,6 +24,8 @@ document.getElementById("join-button").addEventListener("click", joinGame);
 let user_longitude;
 let user_latitude;
 
+let currentTimeStamp
+
 window.onload = () => {
     const pathParts = window.location.pathname.split('/');
     game_id = pathParts[pathParts.length - 1]; 
@@ -32,10 +34,15 @@ window.onload = () => {
 
 async function loadGamePositions() {
 
+    await fetch(`/timestamp/${game_id}`, {
+        method: "PUT"
+    })
+
     await fetch(`/games/${game_id}`)
         .then(response => response.json())
         .then(data => {
             document.getElementById("game-title").innerText = data.name;
+            currentTimeStamp = data.timestamp
         }).catch(() => {
             window.location.href = `/`
         }
@@ -60,7 +67,7 @@ async function loadGamePositions() {
                 row.innerHTML = `
                     <td>${p.user_id}</td>
                     <td>${p.team_id}</td>
-                    <td>${p.timestamp}</td>
+                    <td>${timeElapsed(p.timestamp)}</td>
                 `;
                 playersBody.appendChild(row);
                 });
@@ -71,7 +78,7 @@ async function loadGamePositions() {
                         row.innerHTML = `
                         <td>${p.user_id}</td>
                         <td>${p.team_id}</td>
-                        <td>${p.timestamp}</td>
+                        <td>${timeElapsed(p.timestamp)}</td>
                         <td>${distanceInFeet(user_latitude, user_longitude, p.latitude, p.longitude)}</td>`;
                         playersBody.appendChild(row);
                     }
@@ -100,7 +107,7 @@ async function loadGamePositions() {
                     <td>${point.team_id}</td>
                     <td>${point.defenders}</td>
                     <td>${point.attackers}</td>
-                    <td>${point.timestamp}</td>
+                    <td>${timeElapsed(point.timestamp)}</td>
                 `;
                 pointsBody.appendChild(row);
             });
@@ -112,7 +119,7 @@ async function loadGamePositions() {
                     <td>${point.team_id}</td>
                     <td>${point.defenders}</td>
                     <td>${point.attackers}</td>
-                    <td>${point.timestamp}</td>
+                    <td>${timeElapsed(point.timestamp)}</td>
                     <td>${distanceInFeet(user_latitude, user_longitude, point.latitude, point.longitude)}</td>
                 `;
                 pointsBody.appendChild(row);
@@ -344,7 +351,8 @@ async function mapDisplay(){
     .addTo(playerLayer)
     .bindPopup(`
         <strong>User:</strong> ${player.user_id}<br>
-        <strong>Team:</strong> ${player.team_id}
+        <strong>Team:</strong> ${player.team_id}<br>
+        <strong>Timestamp: ${timeElapsed(player.timestamp)}
     `);
     });
 
@@ -356,4 +364,25 @@ async function mapDisplay(){
     if (bounds.isValid()) {
         map.fitBounds(bounds, { padding: [40, 40] });
     }
+}
+
+function timeElapsed(timestamp){
+
+    // convert everying to UTC
+    const now = new Date(currentTimeStamp.replace(" ", "T") + "Z");
+    const passsedTimeStamp = new Date(timestamp.replace(" ", "T") + "Z");
+
+    // Get the absolute value between our two timestamps
+    // this will give us miliseconds between our two timestamps
+    const diffMs = Math.abs(now - passsedTimeStamp);
+
+    // Convert to seconds
+    const totalSeconds = Math.floor(diffMs / 1000);
+
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    return(`${hours}h, ${minutes}m, ${seconds}s ago`);
+
 }
